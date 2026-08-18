@@ -1,0 +1,68 @@
+<mat-sidenav-container class="sidenav-container">
+  <mat-sidenav #sidenav mode="side" opened [class.expanded]="isExpanded" class="sidenav bg-slate-900 text-white">
+    <div class="logo-area flex items-center justify-between p-4 border-b border-slate-800">
+      <span class="logo-text font-bold text-xl text-slate-200" *ngIf="isExpanded">PFBM</span>
+      <mat-icon class="text-slate-300">account_balance_wallet</mat-icon>
+    </div>
+    
+    <mat-nav-list class="nav-list mt-4">
+      <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link" class="nav-item">
+        <mat-icon matListItemIcon class="nav-icon">dashboard</mat-icon>
+        <span *ngIf="isExpanded" matListItemTitle class="nav-label">Dashboard</span>
+      </a>
+      <a mat-list-item routerLink="/accounts" routerLinkActive="active-link" class="nav-item">
+        <mat-icon matListItemIcon class="nav-icon">credit_card</mat-icon>
+        <span *ngIf="isExpanded" matListItemTitle class="nav-label">Accounts</span>
+      </a>
+      <a mat-list-item routerLink="/transactions" routerLinkActive="active-link" class="nav-item">
+        <mat-icon matListItemIcon class="nav-icon">receipt_long</mat-icon>
+        <span *ngIf="isExpanded" matListItemTitle class="nav-label">Transactions</span>
+      </a>
+      <a mat-list-item routerLink="/budgets" routerLinkActive="active-link" class="nav-item">
+        <mat-icon matListItemIcon class="nav-icon">pie_chart</mat-icon>
+        <span *ngIf="isExpanded" matListItemTitle class="nav-label">Budgets</span>
+      </a>
+      <a mat-list-item routerLink="/goals" routerLinkActive="active-link" class="nav-item">
+        <mat-icon matListItemIcon class="nav-icon">track_changes</mat-icon>
+        <span *ngIf="isExpanded" matListItemTitle class="nav-label">Goals</span>
+      </a>
+      <a mat-list-item routerLink="/reports" routerLinkActive="active-link" class="nav-item">
+        <mat-icon matListItemIcon class="nav-icon">bar_chart</mat-icon>
+        <span *ngIf="isExpanded" matListItemTitle class="nav-label">Reports</span>
+      </a>
+    </mat-nav-list>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="content-area bg-slate-50 flex flex-col h-full">
+    <mat-toolbar class="toolbar bg-white shadow-sm flex justify-between items-center px-4 border-b border-slate-200">
+      <div class="flex items-center">
+        <button mat-icon-button (click)="toggleSidenav()" class="text-slate-600">
+          <mat-icon>menu</mat-icon>
+        </button>
+        <span class="ml-4 font-semibold text-slate-700 text-lg hidden sm:inline">Personal Finance & Budget Management</span>
+        <span class="ml-4 font-semibold text-slate-700 text-lg sm:hidden">PFBM</span>
+      </div>
+
+      <div class="flex items-center gap-4" *ngIf="authService.currentUser() as user">
+        <span class="text-slate-600 font-medium text-sm hidden md:inline">{{ user.name }} ({{ user.role }})</span>
+        <button mat-icon-button [matMenuTriggerFor]="profileMenu" class="profile-btn bg-slate-100 text-slate-700 rounded-full flex items-center justify-center">
+          <mat-icon>person</mat-icon>
+        </button>
+        <mat-menu #profileMenu="matMenu" xPosition="before">
+          <div class="px-4 py-2 border-b border-slate-100 flex flex-col">
+            <span class="font-semibold text-slate-800 text-sm">{{ user.name }}</span>
+            <span class="text-xs text-slate-500">{{ user.email }}</span>
+          </div>
+          <button mat-menu-item (click)="logout()">
+            <mat-icon class="text-slate-600">logout</mat-icon>
+            <span class="text-slate-700">Sign Out</span>
+          </button>
+        </mat-menu>
+      </div>
+    </mat-toolbar>
+
+    <div class="main-content flex-grow overflow-auto p-6">
+      <router-outlet></router-outlet>
+    </div>
+  </mat-sidenav-content>
+</mat-sidenav-container>
