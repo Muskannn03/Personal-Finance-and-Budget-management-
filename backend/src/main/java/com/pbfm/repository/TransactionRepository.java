@@ -31,9 +31,9 @@ public interface TransactionRepository extends JpaRepository<Transaction, UUID> 
     @Query("SELECT COALESCE(SUM(t.amount), 0) FROM Transaction t WHERE t.user.userId = :userId AND t.category.categoryId = :categoryId AND t.type = :type AND t.date BETWEEN :start AND :end")
     BigDecimal getTotalAmountByCategoryIdAndTypeInDateRange(@Param("userId") UUID userId, @Param("categoryId") UUID categoryId, @Param("type") TransactionType type, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
     @Query("SELECT t FROM Transaction t WHERE t.user.userId = :userId " +
-           "AND (:accountId IS NULL OR t.account.accountId = :accountId) " +
-           "AND (:startDate IS NULL OR t.date >= :startDate) " +
-           "AND (:endDate IS NULL OR t.date <= :endDate)")
+           "AND (cast(:accountId as java.util.UUID) IS NULL OR t.account.accountId = :accountId) " +
+           "AND (cast(:startDate as timestamp) IS NULL OR t.date >= :startDate) " +
+           "AND (cast(:endDate as timestamp) IS NULL OR t.date <= :endDate)")
     Page<Transaction> findFilteredTransactions(
         @Param("userId") UUID userId,
         @Param("accountId") UUID accountId,

@@ -35,7 +35,7 @@ public class User extends AuditableEntity {
     private String email;
 
     @Column(name = "password_hash", nullable = false, length = 255)
-    @com.fasterxml.jackson.annotation.JsonIgnore
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
     private String passwordHash;
 
     @Column(name = "currency_preference", nullable = false, length = 10)
