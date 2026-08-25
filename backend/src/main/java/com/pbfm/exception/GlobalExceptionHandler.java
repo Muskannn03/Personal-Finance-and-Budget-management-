@@ -44,8 +44,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiResponse<Void>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         log.error("Data Integrity Violation: ", ex);
         String message = "Database constraint violation occurred";
-        if (ex.getRootCause() != null && ex.getRootCause().getMessage() != null) {
-            String rootMsg = ex.getRootCause().getMessage();
+        Throwable rootCause = ex.getRootCause();
+        if (rootCause != null && rootCause.getMessage() != null) {
+            String rootMsg = rootCause.getMessage();
             if (rootMsg.contains("duplicate key value")) {
                 message = "A resource with this identifier already exists";
                 ApiResponse<Void> response = ApiResponse.error(HttpStatus.CONFLICT.value(), message);

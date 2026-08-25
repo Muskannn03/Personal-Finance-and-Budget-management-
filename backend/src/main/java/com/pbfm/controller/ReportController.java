@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -31,8 +32,6 @@ public class ReportController {
     private final TransactionRepository transactionRepository;
     private final BudgetRepository budgetRepository;
     private final GoalRepository goalRepository;
-    private final InvestmentRepository investmentRepository;
-    private final RewardRepository rewardRepository;
     private final AccountRepository accountRepository;
     private final UserRepository userRepository;
     private final EntityManager entityManager;
@@ -145,7 +144,7 @@ public class ReportController {
             BigDecimal utilizationPct = BigDecimal.ZERO;
             if (budget.getLimitAmount().compareTo(BigDecimal.ZERO) > 0) {
                 utilizationPct = currentTotal.multiply(new BigDecimal("100"))
-                        .divide(budget.getLimitAmount(), 2, BigDecimal.ROUND_HALF_UP);
+                        .divide(budget.getLimitAmount(), 2, RoundingMode.HALF_UP);
             }
 
             Map<String, Object> item = new HashMap<>();
