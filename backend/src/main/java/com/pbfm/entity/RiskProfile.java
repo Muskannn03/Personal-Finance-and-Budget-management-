@@ -31,16 +31,28 @@ public class RiskProfile extends AuditableEntity {
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private User user;
+
+    @Transient
+    private UUID userId;
+
+    public UUID getUserId() {
+        return user != null ? user.getUserId() : userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
 
     @Column(name = "risk_score", nullable = false)
     private Integer riskScore;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "profile_type", nullable = false, columnDefinition = "profile_type_enum")
-    
     private ProfileType profileType;
 
     @Column(name = "deleted_at")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private LocalDateTime deletedAt;
 }

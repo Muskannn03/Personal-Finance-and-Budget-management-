@@ -1,15 +1,10 @@
 package com.pbfm.controller;
 
-import com.pbfm.dto.request.TransactionCreateRequest;
-import com.pbfm.dto.request.TransactionUpdateRequest;
-import com.pbfm.dto.response.TransactionResponse;
 import com.pbfm.entity.*;
 import com.pbfm.enums.ReminderStatus;
 import com.pbfm.enums.RewardStatus;
 import com.pbfm.enums.TransactionType;
 import com.pbfm.exception.ResourceNotFoundException;
-import com.pbfm.exception.ValidationException;
-import com.pbfm.mapper.TransactionMapper;
 import com.pbfm.repository.*;
 import com.pbfm.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,13 +24,14 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/transactions")
 @RequiredArgsConstructor
-@Tag(name = "Transaction Management", description = "Endpoints for recording expenses and incomes")
+@Tag(name = "Transaction Management", description = "Endpoints for managing transaction records")
 @Slf4j
 public class TransactionController {
 
@@ -46,12 +42,12 @@ public class TransactionController {
     private final RewardRepository rewardRepository;
     private final BudgetRepository budgetRepository;
     private final ReminderRepository reminderRepository;
-    private final TransactionMapper transactionMapper;
 
     @PostMapping
     @Operation(summary = "Record a new transaction")
     @Transactional
-    public ResponseEntity<ApiResponse<TransactionResponse>> createTransaction(@Valid @RequestBody TransactionCreateRequest request) {
+    public ResponseEntity<ApiResponse<Transaction>> createTransaction(@Valid @RequestBody Transaction request) {
+        log.info("Recording a new transaction of type {} with amount {} for user ID: {}", request.getType(), request.getAmount(), request.getUserId());
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
 
@@ -64,50 +60,51 @@ public class TransactionController {
                     .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
         }
 
-        Transaction transaction = transactionMapper.toEntity(request);
-        transaction.setUser(user);
-        transaction.setAccount(account);
-        transaction.setCategory(category);
-        if (transaction.getDate() == null) {
-            transaction.setDate(LocalDateTime.now());
+        request.setUser(user);
+        request.setAccount(account);
+        request.setCategory(category);
+        if (request.getDate() == null) {
+            request.setDate(LocalDateTime.now());
         }
 
-        Transaction savedTransaction = transactionRepository.save(transaction);
+        Transaction savedTransaction = transactionRepository.save(request);
+        log.info("Transaction recorded successfully with ID: {}", savedTransaction.getTransactionId());
 
         // --- BUSINESS RULE: Check Budget Breaches on Expenses ---
-        if (transaction.getType() == TransactionType.EXPENSE && category != null) {
-            checkAndHandleBudgetBreach(user, category, transaction);
+        if (savedTransaction.getType() == TransactionType.EXPENSE && category != null) {
+            checkAndHandleBudgetBreach(user, category, savedTransaction);
         }
 
         // --- BUSINESS RULE: Cashback Reward Auto-Generation ---
-        if (transaction.getType() == TransactionType.EXPENSE && category != null && 
+        if (savedTransaction.getType() == TransactionType.EXPENSE && category != null && 
             "Shopping".equalsIgnoreCase(category.getCategoryName()) && 
-            transaction.getAmount().compareTo(new BigDecimal("500.00")) > 0) {
+            savedTransaction.getAmount().compareTo(new BigDecimal("500.00")) > 0) {
             generateCashbackReward(user, account, savedTransaction);
         }
 
         return new ResponseEntity<>(
-                ApiResponse.success(transactionMapper.toResponse(savedTransaction), "Transaction recorded successfully"),
+                ApiResponse.success(savedTransaction, "Transaction recorded successfully"),
                 HttpStatus.CREATED
         );
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get transaction by ID")
-    public ResponseEntity<ApiResponse<TransactionResponse>> getTransactionById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Transaction>> getTransactionById(@PathVariable UUID id) {
+        log.info("Fetching transaction by ID: {}", id);
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found with id: " + id));
 
-        return ResponseEntity.ok(ApiResponse.success(transactionMapper.toResponse(transaction)));
+        return ResponseEntity.ok(ApiResponse.success(transaction));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing transaction")
     @Transactional
-    public ResponseEntity<ApiResponse<TransactionResponse>> updateTransaction(
+    public ResponseEntity<ApiResponse<Transaction>> updateTransaction(
             @PathVariable UUID id,
-            @Valid @RequestBody TransactionUpdateRequest request) {
-
+            @Valid @RequestBody Transaction request) {
+        log.info("Updating transaction with ID: {}", id);
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found with id: " + id));
 
@@ -117,46 +114,59 @@ public class TransactionController {
                     .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + request.getCategoryId()));
         }
 
-        transactionMapper.updateEntityFromDto(request, transaction);
+        transaction.setAmount(request.getAmount());
+        transaction.setType(request.getType());
+        transaction.setDate(request.getDate());
         transaction.setCategory(category);
+        
+        if (request.getAccountId() != null) {
+            Account account = accountRepository.findById(request.getAccountId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Account not found with id: " + request.getAccountId()));
+            transaction.setAccount(account);
+        }
+
         Transaction updatedTransaction = transactionRepository.save(transaction);
+        log.info("Transaction with ID: {} updated successfully", id);
 
         // Check budget breaches on update if transaction is an expense
         if (updatedTransaction.getType() == TransactionType.EXPENSE && category != null) {
             checkAndHandleBudgetBreach(updatedTransaction.getUser(), category, updatedTransaction);
         }
 
-        return ResponseEntity.ok(ApiResponse.success(transactionMapper.toResponse(updatedTransaction), "Transaction updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(updatedTransaction, "Transaction updated successfully"));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a transaction (soft delete)")
     @Transactional
     public ResponseEntity<ApiResponse<Void>> deleteTransaction(@PathVariable UUID id) {
+        log.info("Deleting transaction with ID: {}", id);
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found with id: " + id));
 
         transactionRepository.delete(transaction);
+        log.info("Transaction with ID: {} deleted successfully", id);
         return ResponseEntity.ok(ApiResponse.success(null, "Transaction deleted successfully"));
     }
 
     @GetMapping
     @Operation(summary = "Search and filter transactions pageably")
-    public ResponseEntity<ApiResponse<Page<TransactionResponse>>> getTransactions(
+    public ResponseEntity<ApiResponse<Page<Transaction>>> getTransactions(
             @RequestParam UUID userId,
             @RequestParam(required = false) UUID accountId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
             Pageable pageable) {
+        log.info("Searching and filtering transactions pageably for user ID: {}, account ID: {}", userId, accountId);
 
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
 
         Page<Transaction> transactionPage = transactionRepository.findFilteredTransactions(userId, accountId, startDate, endDate, pageable);
-        Page<TransactionResponse> responsePage = transactionPage.map(transactionMapper::toResponse);
+        log.info("Found {} transactions in the requested page for user ID: {}", transactionPage.getNumberOfElements(), userId);
 
-        return ResponseEntity.ok(ApiResponse.success(responsePage));
+        return ResponseEntity.ok(ApiResponse.success(transactionPage));
     }
 
     private void checkAndHandleBudgetBreach(User user, Category category, Transaction transaction) {

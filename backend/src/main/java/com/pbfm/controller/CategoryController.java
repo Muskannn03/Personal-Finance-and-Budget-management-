@@ -1,13 +1,9 @@
 package com.pbfm.controller;
 
-import com.pbfm.dto.request.CategoryCreateRequest;
-import com.pbfm.dto.request.CategoryUpdateRequest;
-import com.pbfm.dto.response.CategoryResponse;
 import com.pbfm.entity.Category;
 import com.pbfm.entity.User;
 import com.pbfm.exception.DuplicateResourceException;
 import com.pbfm.exception.ResourceNotFoundException;
-import com.pbfm.mapper.CategoryMapper;
 import com.pbfm.repository.CategoryRepository;
 import com.pbfm.repository.TransactionRepository;
 import com.pbfm.repository.UserRepository;
@@ -16,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,22 +20,22 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
 @Tag(name = "Category Management", description = "Endpoints for managing transaction categories")
+@Slf4j
 public class CategoryController {
 
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
     private final TransactionRepository transactionRepository;
-    private final CategoryMapper categoryMapper;
 
     @PostMapping
     @Operation(summary = "Create a new category")
-    public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(@Valid @RequestBody CategoryCreateRequest request) {
+    public ResponseEntity<ApiResponse<Category>> createCategory(@Valid @RequestBody Category request) {
+        log.info("Creating category '{}' of type {} for user ID: {}", request.getCategoryName(), request.getType(), request.getUserId());
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
 
@@ -46,31 +43,32 @@ public class CategoryController {
             throw new DuplicateResourceException("Category already exists for user: " + request.getCategoryName());
         }
 
-        Category category = categoryMapper.toEntity(request);
-        category.setUser(user);
-        Category savedCategory = categoryRepository.save(category);
+        request.setUser(user);
+        Category savedCategory = categoryRepository.save(request);
 
+        log.info("Category created successfully with ID: {}", savedCategory.getCategoryId());
         return new ResponseEntity<>(
-                ApiResponse.success(categoryMapper.toResponse(savedCategory), "Category created successfully"),
+                ApiResponse.success(savedCategory, "Category created successfully"),
                 HttpStatus.CREATED
         );
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get category by ID")
-    public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Category>> getCategoryById(@PathVariable UUID id) {
+        log.info("Fetching category by ID: {}", id);
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
-        return ResponseEntity.ok(ApiResponse.success(categoryMapper.toResponse(category)));
+        return ResponseEntity.ok(ApiResponse.success(category));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing category")
-    public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
+    public ResponseEntity<ApiResponse<Category>> updateCategory(
             @PathVariable UUID id,
-            @Valid @RequestBody CategoryUpdateRequest request) {
-
+            @Valid @RequestBody Category request) {
+        log.info("Updating category with ID: {}", id);
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
@@ -80,37 +78,40 @@ public class CategoryController {
             }
         }
 
-        categoryMapper.updateEntityFromDto(request, category);
+        category.setCategoryName(request.getCategoryName());
+        category.setType(request.getType());
         Category updatedCategory = categoryRepository.save(category);
 
-        return ResponseEntity.ok(ApiResponse.success(categoryMapper.toResponse(updatedCategory), "Category updated successfully"));
+        log.info("Category with ID: {} updated successfully", id);
+        return ResponseEntity.ok(ApiResponse.success(updatedCategory, "Category updated successfully"));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete category (soft delete)")
     @Transactional
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable UUID id) {
+        log.info("Deleting category with ID: {}", id);
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Category not found with id: " + id));
 
         // Business Rule: Nullify category references on associated transactions first
+        log.info("Nullifying category references on transactions associated with category ID: {}", id);
         transactionRepository.setCategoryToNullForCategoryId(id);
         
         categoryRepository.delete(category);
+        log.info("Category with ID: {} deleted successfully", id);
         return ResponseEntity.ok(ApiResponse.success(null, "Category deleted successfully"));
     }
 
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get all categories for a specific user")
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getCategoriesByUserId(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<List<Category>>> getCategoriesByUserId(@PathVariable UUID userId) {
+        log.info("Fetching all categories for user ID: {}", userId);
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
         List<Category> categories = categoryRepository.findByUser_UserId(userId);
-        List<CategoryResponse> responses = categories.stream()
-                .map(categoryMapper::toResponse)
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(ApiResponse.success(responses));
+        log.info("Found {} categories for user ID: {}", categories.size(), userId);
+        return ResponseEntity.ok(ApiResponse.success(categories));
     }
 }

@@ -35,24 +35,38 @@ public class Category extends AuditableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private User user;
+
+    @Transient
+    private UUID userId;
+
+    public UUID getUserId() {
+        return user != null ? user.getUserId() : userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
 
     @Column(name = "category_name", nullable = false, length = 100)
     private String categoryName;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, columnDefinition = "transaction_type_enum")
-    
     private TransactionType type;
 
     @Column(name = "deleted_at")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "category")
     @Builder.Default
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Transaction> transactions = new ArrayList<>();
 
     @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Budget> budgets = new ArrayList<>();
 }

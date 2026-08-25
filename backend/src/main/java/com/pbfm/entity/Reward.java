@@ -33,15 +33,51 @@ public class Reward extends AuditableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Account account;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "source_transaction_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Transaction sourceTransaction;
+
+    @Transient
+    private UUID userId;
+
+    @Transient
+    private UUID accountId;
+
+    @Transient
+    private UUID sourceTransactionId;
+
+    public UUID getUserId() {
+        return user != null ? user.getUserId() : userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    public UUID getAccountId() {
+        return account != null ? account.getAccountId() : accountId;
+    }
+
+    public void setAccountId(UUID accountId) {
+        this.accountId = accountId;
+    }
+
+    public UUID getSourceTransactionId() {
+        return sourceTransaction != null ? sourceTransaction.getTransactionId() : sourceTransactionId;
+    }
+
+    public void setSourceTransactionId(UUID sourceTransactionId) {
+        this.sourceTransactionId = sourceTransactionId;
+    }
 
     @Column(name = "reward_type", nullable = false, length = 50)
     private String rewardType;
@@ -51,7 +87,6 @@ public class Reward extends AuditableEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, columnDefinition = "reward_status_enum")
-    
     @Builder.Default
     private RewardStatus status = RewardStatus.EARNED;
 
@@ -66,5 +101,6 @@ public class Reward extends AuditableEntity {
     private LocalDate redeemedDate;
 
     @Column(name = "deleted_at")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private LocalDateTime deletedAt;
 }

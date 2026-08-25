@@ -1,13 +1,9 @@
 package com.pbfm.controller;
 
-import com.pbfm.dto.request.ReminderCreateRequest;
-import com.pbfm.dto.request.ReminderUpdateRequest;
-import com.pbfm.dto.response.ReminderResponse;
 import com.pbfm.entity.Reminder;
 import com.pbfm.entity.User;
 import com.pbfm.enums.ReminderStatus;
 import com.pbfm.exception.ResourceNotFoundException;
-import com.pbfm.mapper.ReminderMapper;
 import com.pbfm.repository.BudgetRepository;
 import com.pbfm.repository.GoalRepository;
 import com.pbfm.repository.InvestmentRepository;
@@ -18,6 +14,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,12 +22,12 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/reminders")
 @RequiredArgsConstructor
 @Tag(name = "Reminder Management", description = "Endpoints for scheduling due dates and warning notifications")
+@Slf4j
 public class ReminderController {
 
     private final ReminderRepository reminderRepository;
@@ -38,78 +35,87 @@ public class ReminderController {
     private final BudgetRepository budgetRepository;
     private final GoalRepository goalRepository;
     private final InvestmentRepository investmentRepository;
-    private final ReminderMapper reminderMapper;
 
     @PostMapping
     @Operation(summary = "Schedule a new reminder")
-    public ResponseEntity<ApiResponse<ReminderResponse>> createReminder(@Valid @RequestBody ReminderCreateRequest request) {
+    public ResponseEntity<ApiResponse<Reminder>> createReminder(@Valid @RequestBody Reminder request) {
+        log.info("Scheduling a new reminder '{}' for user ID: {}, related to: {}", request.getTitle(), request.getUserId(), request.getRelatedType());
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
 
         // Validate that the polymorphic related_id actually exists
-        validatePolymorphicReference(request.getRelatedType(), request.getRelatedId());
+        if (request.getRelatedType() != null && request.getRelatedId() != null) {
+            validatePolymorphicReference(request.getRelatedType(), request.getRelatedId());
+        }
 
-        Reminder reminder = reminderMapper.toEntity(request);
-        reminder.setUser(user);
-        Reminder savedReminder = reminderRepository.save(reminder);
+        request.setUser(user);
+        Reminder savedReminder = reminderRepository.save(request);
 
+        log.info("Reminder scheduled successfully with ID: {}", savedReminder.getReminderId());
         return new ResponseEntity<>(
-                ApiResponse.success(reminderMapper.toResponse(savedReminder), "Reminder created successfully"),
+                ApiResponse.success(savedReminder, "Reminder created successfully"),
                 HttpStatus.CREATED
         );
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get reminder by ID")
-    public ResponseEntity<ApiResponse<ReminderResponse>> getReminderById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<Reminder>> getReminderById(@PathVariable UUID id) {
+        log.info("Fetching reminder by ID: {}", id);
         Reminder reminder = reminderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reminder not found with id: " + id));
 
-        return ResponseEntity.ok(ApiResponse.success(reminderMapper.toResponse(reminder)));
+        return ResponseEntity.ok(ApiResponse.success(reminder));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing reminder")
-    public ResponseEntity<ApiResponse<ReminderResponse>> updateReminder(
+    public ResponseEntity<ApiResponse<Reminder>> updateReminder(
             @PathVariable UUID id,
-            @Valid @RequestBody ReminderUpdateRequest request) {
-
+            @Valid @RequestBody Reminder request) {
+        log.info("Updating reminder with ID: {}", id);
         Reminder reminder = reminderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reminder not found with id: " + id));
 
-        reminderMapper.updateEntityFromDto(request, reminder);
+        reminder.setTitle(request.getTitle());
+        reminder.setRelatedType(request.getRelatedType());
+        reminder.setRelatedId(request.getRelatedId());
+        reminder.setDueDate(request.getDueDate());
+        reminder.setStatus(request.getStatus());
         Reminder updatedReminder = reminderRepository.save(reminder);
 
-        return ResponseEntity.ok(ApiResponse.success(reminderMapper.toResponse(updatedReminder), "Reminder updated successfully"));
+        log.info("Reminder with ID: {} updated successfully", id);
+        return ResponseEntity.ok(ApiResponse.success(updatedReminder, "Reminder updated successfully"));
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Delete a reminder (soft delete)")
     public ResponseEntity<ApiResponse<Void>> deleteReminder(@PathVariable UUID id) {
+        log.info("Deleting reminder with ID: {}", id);
         Reminder reminder = reminderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reminder not found with id: " + id));
 
         reminderRepository.delete(reminder);
+        log.info("Reminder with ID: {} deleted successfully", id);
         return ResponseEntity.ok(ApiResponse.success(null, "Reminder deleted successfully"));
     }
 
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get all reminders for a specific user")
-    public ResponseEntity<ApiResponse<List<ReminderResponse>>> getRemindersByUserId(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<List<Reminder>>> getRemindersByUserId(@PathVariable UUID userId) {
+        log.info("Fetching all reminders for user ID: {}", userId);
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
         List<Reminder> reminders = reminderRepository.findByUser_UserId(userId);
-        List<ReminderResponse> responses = reminders.stream()
-                .map(reminderMapper::toResponse)
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(ApiResponse.success(responses));
+        log.info("Found {} reminders for user ID: {}", reminders.size(), userId);
+        return ResponseEntity.ok(ApiResponse.success(reminders));
     }
 
     @GetMapping("/{id}/details")
     @Operation(summary = "Get full object details of the polymorphic linked entity")
     public ResponseEntity<ApiResponse<Object>> getReminderPolymorphicDetails(@PathVariable UUID id) {
+        log.info("Fetching detailed object for reminder ID: {}", id);
         Reminder reminder = reminderRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reminder not found with id: " + id));
 
@@ -119,17 +125,16 @@ public class ReminderController {
 
     @GetMapping("/due")
     @Operation(summary = "Get all due reminders currently pending")
-    public ResponseEntity<ApiResponse<List<ReminderResponse>>> getDueReminders() {
+    public ResponseEntity<ApiResponse<List<Reminder>>> getDueReminders() {
+        log.info("Fetching all pending due reminders");
         List<Reminder> dueReminders = reminderRepository.findByDueDateBeforeAndStatus(
                 LocalDateTime.now(), ReminderStatus.PENDING);
-        List<ReminderResponse> responses = dueReminders.stream()
-                .map(reminderMapper::toResponse)
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(ApiResponse.success(responses));
+        log.info("Found {} pending due reminders", dueReminders.size());
+        return ResponseEntity.ok(ApiResponse.success(dueReminders));
     }
 
     private void validatePolymorphicReference(String type, UUID id) {
+        log.debug("Validating polymorphic reference of type: {} with ID: {}", type, id);
         switch (type.toUpperCase()) {
             case "BUDGET":
                 if (!budgetRepository.existsById(id)) {
@@ -152,6 +157,7 @@ public class ReminderController {
     }
 
     private Object loadPolymorphicReference(String type, UUID id) {
+        log.debug("Loading polymorphic reference of type: {} with ID: {}", type, id);
         switch (type.toUpperCase()) {
             case "BUDGET":
                 return budgetRepository.findById(id)

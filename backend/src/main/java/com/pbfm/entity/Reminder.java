@@ -31,7 +31,19 @@ public class Reminder extends AuditableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private User user;
+
+    @Transient
+    private UUID userId;
+
+    public UUID getUserId() {
+        return user != null ? user.getUserId() : userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
 
     @Column(name = "title", nullable = false, length = 255)
     private String title;
@@ -47,10 +59,10 @@ public class Reminder extends AuditableEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, columnDefinition = "reminder_status_enum")
-    
     @Builder.Default
     private ReminderStatus status = ReminderStatus.PENDING;
 
     @Column(name = "deleted_at")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private LocalDateTime deletedAt;
 }

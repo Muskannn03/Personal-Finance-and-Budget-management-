@@ -1,68 +1,308 @@
-<mat-sidenav-container class="sidenav-container">
-  <mat-sidenav #sidenav mode="side" opened [class.expanded]="isExpanded" class="sidenav bg-slate-900 text-white">
-    <div class="logo-area flex items-center justify-between p-4 border-b border-slate-800">
-      <span class="logo-text font-bold text-xl text-slate-200" *ngIf="isExpanded">PFBM</span>
-      <mat-icon class="text-slate-300">account_balance_wallet</mat-icon>
+<div class="min-h-screen flex flex-col md:flex-row bg-brand-bg text-text-main font-sans">
+  <!-- Desktop Sidebar (md and up) -->
+  <aside 
+    [class.w-64]="isExpanded" 
+    [class.w-20]="!isExpanded" 
+    class="hidden md:flex flex-col bg-white border-r border-brand-border transition-all duration-300 ease-in-out h-screen sticky top-0"
+  >
+    <!-- Logo area -->
+    <div class="flex items-center justify-between p-5 border-b border-brand-border h-16">
+      <div class="flex items-center gap-2" *ngIf="isExpanded">
+        <div class="w-8 h-8 rounded-xl bg-brand-primary flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          B
+        </div>
+        <span class="font-extrabold text-xl tracking-tight text-brand-primary-dark">BACHAT</span>
+      </div>
+      <div class="w-full flex justify-center" *ngIf="!isExpanded">
+        <div class="w-9 h-9 rounded-xl bg-brand-primary flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          B
+        </div>
+      </div>
+      <button (click)="toggleSidenav()" class="text-text-sub hover:text-brand-primary-dark focus:outline-none" *ngIf="isExpanded">
+        <!-- SVG close arrow -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+        </svg>
+      </button>
+      <button (click)="toggleSidenav()" class="text-text-sub hover:text-brand-primary-dark focus:outline-none" *ngIf="!isExpanded">
+        <!-- SVG open arrow -->
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Navigation items -->
+    <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+      <a 
+        routerLink="/dashboard" 
+        routerLinkActive="bg-brand-primary-light text-brand-primary-dark" 
+        [routerLinkActiveOptions]="{exact: true}"
+        class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group hover:bg-brand-bg"
+        [title]="isExpanded ? '' : 'Dashboard'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
+        </svg>
+        <span class="font-medium text-sm transition-opacity duration-200" [class.opacity-0]="!isExpanded" [class.hidden]="!isExpanded">Dashboard</span>
+      </a>
+
+      <a 
+        routerLink="/transactions" 
+        routerLinkActive="bg-brand-primary-light text-brand-primary-dark" 
+        class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group hover:bg-brand-bg"
+        [title]="isExpanded ? '' : 'Transactions'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+        <span class="font-medium text-sm transition-opacity duration-200" [class.opacity-0]="!isExpanded" [class.hidden]="!isExpanded">Transactions</span>
+      </a>
+
+      <a 
+        routerLink="/accounts" 
+        routerLinkActive="bg-brand-primary-light text-brand-primary-dark" 
+        class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group hover:bg-brand-bg"
+        [title]="isExpanded ? '' : 'Accounts'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        </svg>
+        <span class="font-medium text-sm transition-opacity duration-200" [class.opacity-0]="!isExpanded" [class.hidden]="!isExpanded">Accounts</span>
+      </a>
+
+      <a 
+        routerLink="/budgets" 
+        routerLinkActive="bg-brand-primary-light text-brand-primary-dark" 
+        class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group hover:bg-brand-bg"
+        [title]="isExpanded ? '' : 'Budgets'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+        </svg>
+        <span class="font-medium text-sm transition-opacity duration-200" [class.opacity-0]="!isExpanded" [class.hidden]="!isExpanded">Budgets</span>
+      </a>
+
+      <a 
+        routerLink="/goals" 
+        routerLinkActive="bg-brand-primary-light text-brand-primary-dark" 
+        class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group hover:bg-brand-bg"
+        [title]="isExpanded ? '' : 'Goals'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+        <span class="font-medium text-sm transition-opacity duration-200" [class.opacity-0]="!isExpanded" [class.hidden]="!isExpanded">Goals</span>
+      </a>
+
+      <a 
+        routerLink="/investments" 
+        routerLinkActive="bg-brand-primary-light text-brand-primary-dark" 
+        class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group hover:bg-brand-bg"
+        [title]="isExpanded ? '' : 'Investments'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+        </svg>
+        <span class="font-medium text-sm transition-opacity duration-200" [class.opacity-0]="!isExpanded" [class.hidden]="!isExpanded">Investments</span>
+      </a>
+
+      <a 
+        routerLink="/risk-profile" 
+        routerLinkActive="bg-brand-primary-light text-brand-primary-dark" 
+        class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group hover:bg-brand-bg"
+        [title]="isExpanded ? '' : 'Risk Profile'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-13.32 9-8.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+        <span class="font-medium text-sm transition-opacity duration-200" [class.opacity-0]="!isExpanded" [class.hidden]="!isExpanded">Risk Profile</span>
+      </a>
+
+      <a 
+        routerLink="/reports" 
+        routerLinkActive="bg-brand-primary-light text-brand-primary-dark" 
+        class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group hover:bg-brand-bg"
+        [title]="isExpanded ? '' : 'Reports'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 002 2h2a2 2 0 002-2z" />
+        </svg>
+        <span class="font-medium text-sm transition-opacity duration-200" [class.opacity-0]="!isExpanded" [class.hidden]="!isExpanded">Reports</span>
+      </a>
+
+      <a 
+        routerLink="/reminders" 
+        routerLinkActive="bg-brand-primary-light text-brand-primary-dark" 
+        class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group hover:bg-brand-bg"
+        [title]="isExpanded ? '' : 'Reminders'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+        </svg>
+        <span class="font-medium text-sm transition-opacity duration-200" [class.opacity-0]="!isExpanded" [class.hidden]="!isExpanded">Reminders</span>
+      </a>
+
+      <a 
+        routerLink="/rewards" 
+        routerLinkActive="bg-brand-primary-light text-brand-primary-dark" 
+        class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group hover:bg-brand-bg"
+        [title]="isExpanded ? '' : 'Rewards'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 0h4m-4 0H8m12 3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span class="font-medium text-sm transition-opacity duration-200" [class.opacity-0]="!isExpanded" [class.hidden]="!isExpanded">Rewards</span>
+      </a>
+
+      <a 
+        routerLink="/settings" 
+        routerLinkActive="bg-brand-primary-light text-brand-primary-dark" 
+        class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 group hover:bg-brand-bg"
+        [title]="isExpanded ? '' : 'Settings'"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="font-medium text-sm transition-opacity duration-200" [class.opacity-0]="!isExpanded" [class.hidden]="!isExpanded">Settings</span>
+      </a>
+    </nav>
+
+    <!-- User Profile area at bottom of sidebar -->
+    <div class="p-4 border-t border-brand-border" *ngIf="authService.currentUser() as user">
+      <div class="flex items-center gap-3 overflow-hidden">
+        <div class="w-10 h-10 rounded-2xl bg-brand-primary-light text-brand-primary-dark font-extrabold flex items-center justify-center flex-shrink-0 shadow-sm border border-brand-border">
+          {{ user.name.charAt(0) }}
+        </div>
+        <div class="flex-1 min-w-0" *ngIf="isExpanded">
+          <p class="font-bold text-sm truncate text-text-main">{{ user.name }}</p>
+          <p class="text-xs text-text-sub truncate">{{ user.email }}</p>
+        </div>
+        <button (click)="logout()" class="text-text-sub hover:text-brand-primary-dark flex-shrink-0 focus:outline-none" title="Log Out" *ngIf="isExpanded">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </button>
+      </div>
+      <div class="mt-4 flex justify-center" *ngIf="!isExpanded">
+        <button (click)="logout()" class="text-text-sub hover:text-brand-primary-dark focus:outline-none" title="Log Out">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile Header (hidden on md and up) -->
+  <header class="md:hidden flex items-center justify-between px-5 h-16 bg-white border-b border-brand-border sticky top-0 z-40">
+    <div class="flex items-center gap-2">
+      <div class="w-8 h-8 rounded-xl bg-brand-primary flex items-center justify-center text-white font-bold text-md shadow-sm">
+        B
+      </div>
+      <span class="font-extrabold text-lg text-brand-primary-dark">BACHAT</span>
     </div>
     
-    <mat-nav-list class="nav-list mt-4">
-      <a mat-list-item routerLink="/dashboard" routerLinkActive="active-link" class="nav-item">
-        <mat-icon matListItemIcon class="nav-icon">dashboard</mat-icon>
-        <span *ngIf="isExpanded" matListItemTitle class="nav-label">Dashboard</span>
-      </a>
-      <a mat-list-item routerLink="/accounts" routerLinkActive="active-link" class="nav-item">
-        <mat-icon matListItemIcon class="nav-icon">credit_card</mat-icon>
-        <span *ngIf="isExpanded" matListItemTitle class="nav-label">Accounts</span>
-      </a>
-      <a mat-list-item routerLink="/transactions" routerLinkActive="active-link" class="nav-item">
-        <mat-icon matListItemIcon class="nav-icon">receipt_long</mat-icon>
-        <span *ngIf="isExpanded" matListItemTitle class="nav-label">Transactions</span>
-      </a>
-      <a mat-list-item routerLink="/budgets" routerLinkActive="active-link" class="nav-item">
-        <mat-icon matListItemIcon class="nav-icon">pie_chart</mat-icon>
-        <span *ngIf="isExpanded" matListItemTitle class="nav-label">Budgets</span>
-      </a>
-      <a mat-list-item routerLink="/goals" routerLinkActive="active-link" class="nav-item">
-        <mat-icon matListItemIcon class="nav-icon">track_changes</mat-icon>
-        <span *ngIf="isExpanded" matListItemTitle class="nav-label">Goals</span>
-      </a>
-      <a mat-list-item routerLink="/reports" routerLinkActive="active-link" class="nav-item">
-        <mat-icon matListItemIcon class="nav-icon">bar_chart</mat-icon>
-        <span *ngIf="isExpanded" matListItemTitle class="nav-label">Reports</span>
-      </a>
-    </mat-nav-list>
-  </mat-sidenav>
+    <button (click)="toggleMobileMenu()" class="text-text-main focus:outline-none hover:text-brand-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" *ngIf="!mobileMenuOpen">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+      </svg>
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" *ngIf="mobileMenuOpen">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+  </header>
 
-  <mat-sidenav-content class="content-area bg-slate-50 flex flex-col h-full">
-    <mat-toolbar class="toolbar bg-white shadow-sm flex justify-between items-center px-4 border-b border-slate-200">
-      <div class="flex items-center">
-        <button mat-icon-button (click)="toggleSidenav()" class="text-slate-600">
-          <mat-icon>menu</mat-icon>
-        </button>
-        <span class="ml-4 font-semibold text-slate-700 text-lg hidden sm:inline">Personal Finance & Budget Management</span>
-        <span class="ml-4 font-semibold text-slate-700 text-lg sm:hidden">PFBM</span>
+  <!-- Mobile Sidenav dropdown -->
+  <div class="md:hidden bg-white border-b border-brand-border" *ngIf="mobileMenuOpen">
+    <nav class="px-5 py-4 space-y-1">
+      <a routerLink="/dashboard" routerLinkActive="bg-brand-primary-light text-brand-primary-dark" (click)="mobileMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl">
+        <span>Dashboard</span>
+      </a>
+      <a routerLink="/transactions" routerLinkActive="bg-brand-primary-light text-brand-primary-dark" (click)="mobileMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl">
+        <span>Transactions</span>
+      </a>
+      <a routerLink="/accounts" routerLinkActive="bg-brand-primary-light text-brand-primary-dark" (click)="mobileMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl">
+        <span>Accounts</span>
+      </a>
+      <a routerLink="/budgets" routerLinkActive="bg-brand-primary-light text-brand-primary-dark" (click)="mobileMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl">
+        <span>Budgets</span>
+      </a>
+      <a routerLink="/goals" routerLinkActive="bg-brand-primary-light text-brand-primary-dark" (click)="mobileMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl">
+        <span>Goals</span>
+      </a>
+      <a routerLink="/investments" routerLinkActive="bg-brand-primary-light text-brand-primary-dark" (click)="mobileMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl">
+        <span>Investments</span>
+      </a>
+      <a routerLink="/risk-profile" routerLinkActive="bg-brand-primary-light text-brand-primary-dark" (click)="mobileMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl">
+        <span>Risk Profile</span>
+      </a>
+      <a routerLink="/reports" routerLinkActive="bg-brand-primary-light text-brand-primary-dark" (click)="mobileMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl">
+        <span>Reports</span>
+      </a>
+      <a routerLink="/reminders" routerLinkActive="bg-brand-primary-light text-brand-primary-dark" (click)="mobileMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl">
+        <span>Reminders</span>
+      </a>
+      <a routerLink="/rewards" routerLinkActive="bg-brand-primary-light text-brand-primary-dark" (click)="mobileMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl">
+        <span>Rewards</span>
+      </a>
+      <a routerLink="/settings" routerLinkActive="bg-brand-primary-light text-brand-primary-dark" (click)="mobileMenuOpen = false" class="flex items-center gap-3 px-4 py-3 rounded-2xl">
+        <span>Settings</span>
+      </a>
+      <button (click)="logout(); mobileMenuOpen = false" class="w-full text-left flex items-center gap-3 px-4 py-3 rounded-2xl text-red-500 hover:bg-red-50">
+        <span>Log Out</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- Main View Container -->
+  <main class="flex-1 flex flex-col min-w-0">
+    <!-- Desktop Header -->
+    <header class="hidden md:flex items-center justify-between px-8 h-16 bg-white border-b border-brand-border sticky top-0 z-30">
+      <div class="flex items-center gap-4">
+        <h2 class="text-lg font-bold text-text-main">BACHAT Financial Dashboard</h2>
+        <span class="text-xs text-text-sub px-3 py-1 bg-brand-bg border border-brand-border rounded-full font-medium">v2.0 Beta</span>
       </div>
 
-      <div class="flex items-center gap-4" *ngIf="authService.currentUser() as user">
-        <span class="text-slate-600 font-medium text-sm hidden md:inline">{{ user.name }} ({{ user.role }})</span>
-        <button mat-icon-button [matMenuTriggerFor]="profileMenu" class="profile-btn bg-slate-100 text-slate-700 rounded-full flex items-center justify-center">
-          <mat-icon>person</mat-icon>
+      <div class="flex items-center gap-5" *ngIf="authService.currentUser() as user">
+        <!-- Search placeholder -->
+        <div class="relative w-64">
+          <input 
+            type="text" 
+            placeholder="Search transactions..." 
+            class="w-full pl-9 pr-4 py-1.5 bg-brand-bg text-xs border border-brand-border rounded-2xl focus:outline-none focus:border-brand-primary transition-all duration-200"
+          >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-text-sub absolute left-3 top-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+
+        <!-- Notification Bell -->
+        <button class="relative p-1.5 rounded-xl hover:bg-brand-bg text-text-sub hover:text-text-main focus:outline-none" title="Notifications">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          <span class="absolute top-1 right-1 w-2.5 h-2.5 bg-brand-primary rounded-full ring-2 ring-white"></span>
         </button>
-        <mat-menu #profileMenu="matMenu" xPosition="before">
-          <div class="px-4 py-2 border-b border-slate-100 flex flex-col">
-            <span class="font-semibold text-slate-800 text-sm">{{ user.name }}</span>
-            <span class="text-xs text-slate-500">{{ user.email }}</span>
+
+        <!-- User profile widget -->
+        <div class="flex items-center gap-3 border-l border-brand-border pl-5">
+          <div class="w-8 h-8 rounded-xl bg-brand-primary-light text-brand-primary-dark font-extrabold flex items-center justify-center shadow-sm border border-brand-border text-xs">
+            {{ user.name.charAt(0) }}
           </div>
-          <button mat-menu-item (click)="logout()">
-            <mat-icon class="text-slate-600">logout</mat-icon>
-            <span class="text-slate-700">Sign Out</span>
-          </button>
-        </mat-menu>
+          <div class="hidden lg:block text-left">
+            <p class="font-bold text-xs text-text-main leading-tight">{{ user.name }}</p>
+            <p class="text-[10px] text-text-sub leading-none">{{ user.role }} Account</p>
+          </div>
+        </div>
       </div>
-    </mat-toolbar>
+    </header>
 
-    <div class="main-content flex-grow overflow-auto p-6">
+    <!-- Page Content View -->
+    <div class="flex-1 p-5 md:p-8 overflow-y-auto max-w-7xl w-full mx-auto">
       <router-outlet></router-outlet>
     </div>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+  </main>
+</div>

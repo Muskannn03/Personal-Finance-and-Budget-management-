@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,7 @@ import java.util.*;
 @RequestMapping("/api/v1/reports")
 @RequiredArgsConstructor
 @Tag(name = "Reporting & Analytics", description = "Endpoints for generating financial reports dynamically using SQL/JPQL queries")
+@Slf4j
 public class ReportController {
 
     private final TransactionRepository transactionRepository;
@@ -38,6 +40,7 @@ public class ReportController {
     @GetMapping("/dashboard")
     @Operation(summary = "Get aggregated dashboard analytics for a user")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboardAnalytics(@RequestParam UUID userId) {
+        log.info("Generating dashboard analytics for user ID: {}", userId);
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
@@ -88,6 +91,7 @@ public class ReportController {
         }
         analytics.put("goals", goalSummaryList);
 
+        log.info("Dashboard analytics compiled successfully for user ID: {}", userId);
         return ResponseEntity.ok(ApiResponse.success(analytics));
     }
 
@@ -97,6 +101,7 @@ public class ReportController {
             @RequestParam UUID userId,
             @RequestParam String startDate,
             @RequestParam String endDate) {
+        log.info("Generating category spending report for user ID: {} from {} to {}", userId, startDate, endDate);
 
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
@@ -115,12 +120,14 @@ public class ReportController {
             result.add(item);
         }
 
+        log.info("Category spending report generated successfully with {} categories for user ID: {}", result.size(), userId);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @GetMapping("/budget-utilization")
     @Operation(summary = "Get budget utilization report for a user's active budgets")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getBudgetUtilizationReport(@RequestParam UUID userId) {
+        log.info("Generating budget utilization report for user ID: {}", userId);
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
@@ -153,6 +160,7 @@ public class ReportController {
             report.add(item);
         }
 
+        log.info("Budget utilization report generated successfully with {} budgets for user ID: {}", report.size(), userId);
         return ResponseEntity.ok(ApiResponse.success(report));
     }
 
@@ -160,6 +168,7 @@ public class ReportController {
     @Operation(summary = "Get monthly income vs expense trends")
     @SuppressWarnings("unchecked")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMonthlyIncomeExpenseTrends(@RequestParam UUID userId) {
+        log.info("Generating monthly income vs expense trends for user ID: {}", userId);
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
@@ -194,6 +203,7 @@ public class ReportController {
             trendList.add(trendItem);
         }
 
+        log.info("Monthly income/expense trends generated successfully with {} months for user ID: {}", trendList.size(), userId);
         return ResponseEntity.ok(ApiResponse.success(trendList));
     }
 
@@ -201,6 +211,7 @@ public class ReportController {
     @Operation(summary = "Get summary of reward statistics")
     @SuppressWarnings("unchecked")
     public ResponseEntity<ApiResponse<Map<String, Object>>> getRewardsSummary(@RequestParam UUID userId) {
+        log.info("Generating rewards summary for user ID: {}", userId);
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
@@ -232,6 +243,7 @@ public class ReportController {
         summary.put("totalEarnedAmount", totalEarnedAmount);
         summary.put("breakdown", breakdown);
 
+        log.info("Rewards summary generated successfully for user ID: {}", userId);
         return ResponseEntity.ok(ApiResponse.success(summary));
     }
 }

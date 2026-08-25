@@ -35,7 +35,19 @@ public class Goal extends AuditableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private User user;
+
+    @Transient
+    private UUID userId;
+
+    public UUID getUserId() {
+        return user != null ? user.getUserId() : userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
 
     @Column(name = "goal_name", nullable = false, length = 100)
     private String goalName;
@@ -52,14 +64,15 @@ public class Goal extends AuditableEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, columnDefinition = "goal_status_enum")
-    
     @Builder.Default
     private GoalStatus status = GoalStatus.IN_PROGRESS;
 
     @Column(name = "deleted_at")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private LocalDateTime deletedAt;
 
     @OneToMany(mappedBy = "goal", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private List<Investment> investments = new ArrayList<>();
 }

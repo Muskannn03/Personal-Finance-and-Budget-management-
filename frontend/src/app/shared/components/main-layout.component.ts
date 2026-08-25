@@ -1,12 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatToolbarModule } from '@angular/material/toolbar';
-import { MatIconModule } from '@angular/material/icon';
-import { MatListModule } from '@angular/material/list';
-import { MatButtonModule } from '@angular/material/button';
-import { MatMenuModule } from '@angular/material/menu';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
@@ -16,13 +10,7 @@ import { AuthService } from '../../core/services/auth.service';
     CommonModule,
     RouterOutlet,
     RouterLink,
-    RouterLinkActive,
-    MatSidenavModule,
-    MatToolbarModule,
-    MatIconModule,
-    MatListModule,
-    MatButtonModule,
-    MatMenuModule
+    RouterLinkActive
   ],
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.css']
@@ -30,9 +18,14 @@ import { AuthService } from '../../core/services/auth.service';
 export class MainLayoutComponent {
   authService = inject(AuthService);
   isExpanded = true;
+  mobileMenuOpen = false;
 
   toggleSidenav() {
     this.isExpanded = !this.isExpanded;
+  }
+
+  toggleMobileMenu() {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
   }
 
   logout() {

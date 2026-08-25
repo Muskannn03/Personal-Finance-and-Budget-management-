@@ -33,15 +33,38 @@ public class Investment extends AuditableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "goal_id")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private Goal goal;
+
+    @Transient
+    private UUID userId;
+
+    @Transient
+    private UUID goalId;
+
+    public UUID getUserId() {
+        return user != null ? user.getUserId() : userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
+    }
+
+    public UUID getGoalId() {
+        return goal != null ? goal.getGoalId() : goalId;
+    }
+
+    public void setGoalId(UUID goalId) {
+        this.goalId = goalId;
+    }
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, columnDefinition = "investment_type_enum")
-    
     private InvestmentType type;
 
     @Column(name = "amount", nullable = false, precision = 12, scale = 2)
@@ -57,5 +80,6 @@ public class Investment extends AuditableEntity {
     private BigDecimal currentValue;
 
     @Column(name = "deleted_at")
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private LocalDateTime deletedAt;
 }

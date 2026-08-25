@@ -1,16 +1,9 @@
 package com.pbfm.controller;
 
-import com.pbfm.dto.request.ForgotPasswordRequest;
-import com.pbfm.dto.request.LoginRequest;
-import com.pbfm.dto.request.ResetPasswordRequest;
-import com.pbfm.dto.request.UserCreateRequest;
-import com.pbfm.dto.response.JwtResponse;
-import com.pbfm.dto.response.UserResponse;
 import com.pbfm.entity.User;
 import com.pbfm.exception.DuplicateResourceException;
 import com.pbfm.exception.ResourceNotFoundException;
 import com.pbfm.exception.UnauthorizedException;
-import com.pbfm.mapper.UserMapper;
 import com.pbfm.repository.UserRepository;
 import com.pbfm.response.ApiResponse;
 import com.pbfm.security.JwtTokenProvider;
@@ -19,7 +12,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +27,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.UUID;
+
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
@@ -40,24 +38,23 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
-    private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user account")
-    public ResponseEntity<ApiResponse<UserResponse>> registerUser(@Valid @RequestBody UserCreateRequest request) {
+    public ResponseEntity<ApiResponse<User>> registerUser(@Valid @RequestBody User request) {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email already exists: " + request.getEmail());
         }
 
-        User user = userMapper.toEntity(request);
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        user.setRole("USER"); // Default role is standard USER
-        User savedUser = userRepository.save(user);
+        // The request's password is map to passwordHash in the client JSON representation
+        request.setPasswordHash(passwordEncoder.encode(request.getPasswordHash()));
+        request.setRole("USER"); // Default role is standard USER
+        User savedUser = userRepository.save(request);
 
         return new ResponseEntity<>(
-                ApiResponse.success(userMapper.toResponse(savedUser), "User registered successfully"),
+                ApiResponse.success(savedUser, "User registered successfully"),
                 HttpStatus.CREATED
         );
     }
@@ -71,7 +68,7 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(
                         request.getEmail(),
                         request.getPassword()
-                )
+                    )
         );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -124,23 +121,69 @@ public class AuthController {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + request.getEmail()));
 
         log.info("Password reset request received for email: {}. Dummy OTP/Token sent.", user.getEmail());
-        
-        // Return placeholder success message
         return ResponseEntity.ok(ApiResponse.success(null, "Password reset instructions have been sent to your email address"));
     }
 
     @PostMapping("/reset-password")
     @Operation(summary = "Reset password using token")
     public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
-        // Mock token verification - for mock purposes, any non-blank token acts as a placeholder
         if (request.getToken().trim().isEmpty()) {
             throw new UnauthorizedException("Invalid reset token");
         }
-
-        // In a real application, we would lookup user by reset token.
-        // For security mockup, we will allow updating a sample seed user or log it
         log.info("Password reset token '{}' processed successfully. Password has been updated.", request.getToken());
-
         return ResponseEntity.ok(ApiResponse.success(null, "Your password has been successfully reset"));
+    }
+
+    // --- Embedded DTO / Request / Response helper classes to eliminate dto package ---
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class LoginRequest {
+        @NotBlank(message = "Email is required")
+        @Email(message = "Please provide a valid email address")
+        private String email;
+
+        @NotBlank(message = "Password is required")
+        private String password;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class JwtResponse {
+        private String accessToken;
+        @Builder.Default
+        private String tokenType = "Bearer";
+        private UUID userId;
+        private String name;
+        private String email;
+        private String role;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ForgotPasswordRequest {
+        @NotBlank(message = "Email is required")
+        @Email(message = "Please provide a valid email address")
+        private String email;
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ResetPasswordRequest {
+        @NotBlank(message = "Token is required")
+        private String token;
+
+        @NotBlank(message = "Password is required")
+        @Size(min = 6, message = "Password must be at least 6 characters long")
+        private String newPassword;
     }
 }
