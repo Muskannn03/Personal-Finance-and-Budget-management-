@@ -14,11 +14,47 @@ interface Question {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="space-y-8 text-text-main max-w-2xl mx-auto">
+    <div class="space-y-8 text-text-main max-w-2xl mx-auto pb-10">
       <!-- Header -->
-      <div class="text-center space-y-2">
-        <h1 class="text-3xl font-extrabold tracking-tight text-text-main">Financial Risk Profiling</h1>
-        <p class="text-text-sub text-sm">Assess your investment risk profile to align asset allocations.</p>
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-left">
+          <div class="flex items-center gap-3">
+            <h1 class="text-3xl font-extrabold tracking-tight text-text-main">Financial Risk Profiling</h1>
+            <span *ngIf="isDemoMode" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary-light text-brand-primary-dark border border-brand-primary/30">
+              Demo Values Active
+            </span>
+          </div>
+          <p class="text-text-sub text-sm mt-1">Assess your investment risk tolerance to optimize asset allocations.</p>
+        </div>
+
+        <!-- Controls: Demo Toggle & Guide Pills -->
+        <div class="flex items-center gap-2">
+          <button 
+            (click)="toggleGuide()" 
+            class="text-xs font-semibold px-3 py-1.5 rounded-2xl border transition-all duration-200 flex items-center gap-1 shadow-sm"
+            [ngClass]="showGuide ? 'bg-brand-primary text-white border-brand-primary' : 'bg-white text-text-sub border-brand-border hover:bg-brand-bg'"
+          >
+            <span>💡</span>
+            <span>{{ showGuide ? 'Hide Guide' : 'What is Where?' }}</span>
+          </button>
+
+          <div class="flex items-center bg-white border border-brand-border rounded-2xl p-1 shadow-sm">
+            <button 
+              (click)="setMode(true)" 
+              class="text-xs font-semibold px-3 py-1 rounded-xl transition-all duration-150"
+              [ngClass]="isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
+            >
+              Sample
+            </button>
+            <button 
+              (click)="setMode(false)" 
+              class="text-xs font-semibold px-3 py-1 rounded-xl transition-all duration-150"
+              [ngClass]="!isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
+            >
+              Live
+            </button>
+          </div>
+        </div>
       </div>
 
       <!-- State: Loading -->
@@ -27,29 +63,36 @@ interface Question {
       </div>
 
       <!-- State: Profile Exists -->
-      <div *ngIf="!loading && currentProfile && !takingTest" class="bg-white border border-brand-border p-8 rounded-2xl shadow-sm text-center space-y-6">
+      <div *ngIf="!loading && currentProfile && !takingTest" class="bg-white border border-brand-border p-8 rounded-2xl shadow-sm text-center space-y-6 relative overflow-hidden">
+        <div *ngIf="showGuide" class="inline-flex items-center gap-1 text-[10px] font-bold text-brand-primary-dark bg-brand-primary-light px-2.5 py-0.5 rounded-md mb-2">
+          📍 Risk Tolerance Score: Evaluates volatility threshold & suggests portfolio split
+        </div>
+
         <div class="w-16 h-16 mx-auto rounded-full bg-brand-primary-light text-brand-primary flex items-center justify-center text-3xl shadow-sm border border-brand-border">
           🛡️
         </div>
         
         <div>
-          <span class="text-[10px] font-bold text-text-sub uppercase tracking-wider">Your Risk Profile</span>
+          <span class="text-[10px] font-bold text-text-sub uppercase tracking-wider">Your Assigned Profile</span>
           <h2 class="text-3xl font-black text-brand-primary-dark mt-1">{{ currentProfile.profileType }}</h2>
-          <p class="text-xs text-text-sub mt-2">Risk Assessment Score: {{ currentProfile.riskScore }} / 100</p>
+          <p class="text-xs text-text-sub mt-2 font-medium">Calculated Risk Score: {{ currentProfile.riskScore }} / 100</p>
         </div>
 
         <!-- Asset Allocation Suggestion -->
         <div class="border-t border-brand-border pt-6 space-y-4 text-left">
-          <h4 class="text-xs font-bold text-text-main uppercase tracking-wider">Recommended Asset Allocation</h4>
+          <div class="flex justify-between items-center">
+            <h4 class="text-xs font-bold text-text-main uppercase tracking-wider">Target Asset Mix</h4>
+            <span class="text-[10px] text-text-sub font-semibold">Customized for {{ currentProfile.profileType }} investors</span>
+          </div>
           
           <div class="space-y-3">
             <div *ngFor="let asset of getRecommendedAllocation(currentProfile.profileType)" class="space-y-1">
               <div class="flex justify-between text-xs font-semibold">
                 <span>{{ asset.name }}</span>
-                <span>{{ asset.pct }}%</span>
+                <span class="font-bold">{{ asset.pct }}%</span>
               </div>
-              <div class="w-full bg-brand-bg rounded-full h-2">
-                <div [class]="asset.color" class="h-2 rounded-full" [style.width.%]="asset.pct"></div>
+              <div class="w-full bg-brand-bg rounded-full h-2 overflow-hidden border border-brand-border">
+                <div [class]="asset.color" class="h-2 rounded-full transition-all duration-500" [style.width.%]="asset.pct"></div>
               </div>
             </div>
           </div>
@@ -58,75 +101,37 @@ interface Question {
         <div class="pt-4">
           <button 
             (click)="startQuiz()" 
-            class="px-5 py-2.5 bg-brand-primary-light hover:bg-brand-primary text-brand-primary-dark hover:text-white rounded-xl text-xs font-bold border border-brand-primary transition-all duration-200 focus:outline-none"
+            class="px-6 py-2.5 bg-brand-primary-light hover:bg-brand-primary text-brand-primary-dark hover:text-white border border-brand-primary rounded-xl text-xs font-bold transition-all focus:outline-none"
           >
-            🔄 Retake Assessment
+            Retake Risk Questionnaire
           </button>
         </div>
       </div>
 
-      <!-- State: Taking Test (Quiz Carousel) -->
-      <div *ngIf="!loading && (!currentProfile || takingTest)" class="bg-white border border-brand-border p-8 rounded-2xl shadow-sm space-y-6">
-        <!-- Progress bar -->
-        <div class="space-y-1">
-          <div class="flex justify-between text-[10px] font-bold text-text-sub uppercase tracking-wider">
-            <span>Question {{ currentStep + 1 }} of {{ questions.length }}</span>
-            <span>{{ getQuizProgressPercentage() | number:'1.0-0' }}% Done</span>
+      <!-- State: Taking Assessment Quiz -->
+      <div *ngIf="!loading && takingTest" class="bg-white border border-brand-border p-8 rounded-2xl shadow-sm space-y-6">
+        <div class="flex justify-between items-center border-b border-brand-border pb-4">
+          <span class="text-xs font-bold text-text-sub uppercase tracking-wider">
+            Question {{ currentQuestionIndex + 1 }} of {{ questions.length }}
+          </span>
+          <button (click)="cancelQuiz()" class="text-xs text-red-500 hover:underline">Cancel</button>
+        </div>
+
+        <div class="space-y-4">
+          <h3 class="text-base font-bold text-text-main leading-snug">
+            {{ questions[currentQuestionIndex].text }}
+          </h3>
+
+          <div class="space-y-2.5">
+            <button 
+              *ngFor="let opt of questions[currentQuestionIndex].options"
+              (click)="selectOption(opt.score)"
+              class="w-full p-4 rounded-xl border border-brand-border hover:border-brand-primary hover:bg-brand-bg text-left text-xs font-medium transition-all duration-150 flex items-center justify-between"
+            >
+              <span>{{ opt.text }}</span>
+              <span class="text-text-sub opacity-50">➔</span>
+            </button>
           </div>
-          <div class="w-full bg-brand-bg rounded-full h-1.5 overflow-hidden">
-            <div class="bg-brand-primary h-1.5 rounded-full transition-all duration-300" [style.width.%]="getQuizProgressPercentage()"></div>
-          </div>
-        </div>
-
-        <!-- Question -->
-        <div class="space-y-3">
-          <h3 class="text-lg font-bold text-text-main leading-tight">{{ questions[currentStep].text }}</h3>
-          <p class="text-xs text-text-sub">Select the option that best fits your situation.</p>
-        </div>
-
-        <!-- Options selectable list -->
-        <div class="space-y-3">
-          <button 
-            *ngFor="let opt of questions[currentStep].options" 
-            (click)="selectOption(opt.score)"
-            [class.border-brand-primary]="selectedAnswers[currentStep] === opt.score"
-            [class.bg-brand-primary-light]="selectedAnswers[currentStep] === opt.score"
-            class="w-full p-4 border border-brand-border hover:bg-brand-bg text-left rounded-2xl transition-all duration-150 focus:outline-none flex justify-between items-center"
-          >
-            <span class="text-xs font-semibold text-text-main">{{ opt.text }}</span>
-            <div class="w-4 h-4 rounded-full border border-brand-border flex items-center justify-center" [class.bg-brand-primary]="selectedAnswers[currentStep] === opt.score">
-              <div class="w-1.5 h-1.5 bg-white rounded-full" *ngIf="selectedAnswers[currentStep] === opt.score"></div>
-            </div>
-          </button>
-        </div>
-
-        <!-- Navigation Buttons -->
-        <div class="flex justify-between pt-4 border-t border-brand-border">
-          <button 
-            [disabled]="currentStep === 0" 
-            (click)="goBack()" 
-            class="px-4 py-2 border border-brand-border rounded-xl text-xs font-bold text-text-sub disabled:opacity-50 focus:outline-none"
-          >
-            Back
-          </button>
-          
-          <button 
-            *ngIf="currentStep < questions.length - 1"
-            [disabled]="selectedAnswers[currentStep] === undefined"
-            (click)="goNext()" 
-            class="px-5 py-2.5 bg-brand-primary hover:bg-brand-primary-dark text-white text-xs font-bold rounded-xl disabled:opacity-50 focus:outline-none shadow-sm"
-          >
-            Next
-          </button>
-
-          <button 
-            *ngIf="currentStep === questions.length - 1"
-            [disabled]="selectedAnswers[currentStep] === undefined || submitting"
-            (click)="finishQuiz()" 
-            class="px-5 py-2.5 bg-brand-primary hover:bg-brand-primary-dark text-white text-xs font-bold rounded-xl disabled:opacity-50 focus:outline-none shadow-sm"
-          >
-            {{ submitting ? 'Calculating...' : 'Finish Assessment' }}
-          </button>
         </div>
       </div>
     </div>
@@ -136,175 +141,176 @@ export class RiskProfileComponent implements OnInit {
   private authService = inject(AuthService);
   private riskProfileService = inject(RiskProfileService);
 
-  loading = true;
+  loading = false;
+  isDemoMode = true;
+  showGuide = true;
+
+  currentProfile: any = null;
   takingTest = false;
-  submitting = false;
-  currentProfile: any | null = null;
+  currentQuestionIndex = 0;
+  accumulatedScore = 0;
   userId = '';
 
-  // Quiz State
-  currentStep = 0;
-  selectedAnswers: number[] = [];
+  readonly demoProfile = {
+    profileId: 'demo-rp-1',
+    profileType: 'MODERATE_GROWTH',
+    riskScore: 68
+  };
 
   questions: Question[] = [
     {
       id: 1,
-      text: 'How long do you plan to hold your investments?',
+      text: 'What is your primary financial investment objective?',
       options: [
-        { text: 'Short-term: Less than 2 years', score: 10 },
-        { text: 'Medium-term: 2 to 5 years', score: 20 },
-        { text: 'Long-term: More than 5 years', score: 30 }
+        { text: 'Capital preservation: I cannot afford to lose my money under any circumstance.', score: 5 },
+        { text: 'Steady income: Modest returns with very minimal market fluctuations.', score: 15 },
+        { text: 'Balanced growth: Moderate wealth creation with acceptable short-term fluctuations.', score: 25 },
+        { text: 'Aggressive wealth accumulation: High long-term growth; short-term drops do not bother me.', score: 35 }
       ]
     },
     {
       id: 2,
-      text: 'If your portfolio valuation dropped by 20% in a market correction, what would you do?',
+      text: 'If your portfolio drops by 20% in a month due to market volatility, how would you react?',
       options: [
-        { text: 'Panic and sell everything immediately to secure remaining cash', score: 10 },
-        { text: 'Do nothing and patiently wait for a market recovery', score: 20 },
-        { text: 'Buy more shares/units at the discounted price', score: 30 }
+        { text: 'Sell everything immediately to prevent further bleeding.', score: 5 },
+        { text: 'Feel anxious and move funds into bank fixed deposits.', score: 15 },
+        { text: 'Hold tight and wait for normal market recovery.', score: 25 },
+        { text: 'Invest more aggressively at cheaper discounted prices.', score: 35 }
       ]
     },
     {
       id: 3,
-      text: 'What is your primary investment goal?',
+      text: 'What is your investment time horizon for major life goals?',
       options: [
-        { text: 'Capital preservation: I do not want to lose any principal money', score: 10 },
-        { text: 'Balanced: Moderate growth with a mix of risk and safety', score: 20 },
-        { text: 'Wealth expansion: High growth potential, accepting volatility', score: 30 }
-      ]
-    },
-    {
-      id: 4,
-      text: 'Describe your knowledge of financial markets and products.',
-      options: [
-        { text: 'Beginner: I rely on bank savings or fixed deposits only', score: 10 },
-        { text: 'Intermediate: I understand mutual funds, SIPs and basic stocks', score: 20 },
-        { text: 'Advanced: I actively track equity, derivatives, and crypto assets', score: 30 }
+        { text: 'Less than 1 year (Very Short Term)', score: 5 },
+        { text: '1 to 3 years (Short Term)', score: 15 },
+        { text: '3 to 7 years (Medium Term)', score: 25 },
+        { text: 'More than 7 years (Long Term Growth)', score: 35 }
       ]
     }
   ];
 
   ngOnInit() {
     const session = this.authService.currentUser();
+    this.userId = session ? session.userId : 'demo-user-id';
+
+    this.applyDemoData();
+
     if (session) {
-      this.userId = session.userId;
-      this.loadRiskProfile();
+      this.loadProfile();
     }
   }
 
-  loadRiskProfile() {
-    this.loading = true;
+  toggleGuide() {
+    this.showGuide = !this.showGuide;
+  }
+
+  setMode(demo: boolean) {
+    this.isDemoMode = demo;
+    if (demo) {
+      this.applyDemoData();
+    } else {
+      this.applyLiveData();
+    }
+  }
+
+  private applyDemoData() {
+    this.currentProfile = { ...this.demoProfile };
+    this.loading = false;
+  }
+
+  private applyLiveData() {
+    this.currentProfile = null;
+    this.loadProfile();
+  }
+
+  loadProfile() {
     this.riskProfileService.getRiskProfile(this.userId).subscribe({
       next: (res: any) => {
         if (res && res.data) {
-          this.currentProfile = res.data;
+          if (!this.isDemoMode) {
+            this.currentProfile = res.data;
+          }
         }
-        this.loading = false;
       },
-      error: () => {
-        // No risk profile exists yet
-        this.currentProfile = null;
-        this.loading = false;
-      }
+      error: (err: any) => console.warn('Could not load live profile', err)
     });
   }
 
-  startQuiz() {
-    this.takingTest = true;
-    this.currentStep = 0;
-    this.selectedAnswers = [];
-  }
-
-  getQuizProgressPercentage(): number {
-    return ((this.currentStep + 1) / this.questions.length) * 100;
-  }
-
-  selectOption(score: number) {
-    this.selectedAnswers[this.currentStep] = score;
-  }
-
-  goBack() {
-    if (this.currentStep > 0) {
-      this.currentStep--;
+  getRecommendedAllocation(type: string): { name: string; pct: number; color: string }[] {
+    switch (type) {
+      case 'CONSERVATIVE':
+        return [
+          { name: 'Fixed Income & Bonds', pct: 60, color: 'bg-emerald-500' },
+          { name: 'Equity Mutual Funds', pct: 20, color: 'bg-brand-primary' },
+          { name: 'Sovereign Gold', pct: 10, color: 'bg-amber-400' },
+          { name: 'Liquid Cash Buffer', pct: 10, color: 'bg-blue-400' }
+        ];
+      case 'AGGRESSIVE':
+        return [
+          { name: 'Direct Equity & Small Cap', pct: 60, color: 'bg-red-500' },
+          { name: 'Flexi Cap Funds', pct: 25, color: 'bg-brand-primary' },
+          { name: 'Debt & Bonds', pct: 10, color: 'bg-emerald-500' },
+          { name: 'Cash Reserves', pct: 5, color: 'bg-blue-400' }
+        ];
+      default: // MODERATE / MODERATE_GROWTH
+        return [
+          { name: 'Diversified Equity Funds', pct: 50, color: 'bg-brand-primary' },
+          { name: 'Fixed Deposits & Debt', pct: 30, color: 'bg-emerald-500' },
+          { name: 'Gold ETFs', pct: 10, color: 'bg-amber-400' },
+          { name: 'Liquid Cash & Savings', pct: 10, color: 'bg-blue-400' }
+        ];
     }
   }
 
-  goNext() {
-    if (this.currentStep < this.questions.length - 1) {
-      this.currentStep++;
+  startQuiz() {
+    this.currentQuestionIndex = 0;
+    this.accumulatedScore = 0;
+    this.takingTest = true;
+  }
+
+  cancelQuiz() {
+    this.takingTest = false;
+  }
+
+  selectOption(score: number) {
+    this.accumulatedScore += score;
+    this.currentQuestionIndex++;
+
+    if (this.currentQuestionIndex >= this.questions.length) {
+      this.finishQuiz();
     }
   }
 
   finishQuiz() {
-    this.submitting = true;
-    
-    // Sum scores
-    const totalScore = this.selectedAnswers.reduce((a, b) => a + b, 0);
-    // Convert 40-120 score range to a 0-100 scale value
-    const normalizedScore = Math.round(((totalScore - 40) / 80) * 100);
-
     let profileType = 'MODERATE';
-    if (totalScore <= 60) {
-      profileType = 'CONSERVATIVE';
-    } else if (totalScore >= 95) {
-      profileType = 'AGGRESSIVE';
+    if (this.accumulatedScore <= 35) profileType = 'CONSERVATIVE';
+    else if (this.accumulatedScore >= 80) profileType = 'AGGRESSIVE';
+
+    if (this.isDemoMode) {
+      this.currentProfile = {
+        profileType: profileType,
+        riskScore: Math.min(100, Math.round((this.accumulatedScore / 105) * 100))
+      };
+      this.takingTest = false;
+      return;
     }
 
     const payload = {
       userId: this.userId,
-      riskScore: normalizedScore,
-      profileType
+      riskScore: Math.min(100, Math.round((this.accumulatedScore / 105) * 100)),
+      profileType: profileType
     };
 
-    if (this.currentProfile) {
-      this.riskProfileService.updateRiskProfile(this.currentProfile.profileId, payload).subscribe({
-        next: (res: any) => {
-          this.currentProfile = res.data;
-          this.takingTest = false;
-          this.submitting = false;
-        },
-        error: (err) => {
-          this.submitting = false;
-          alert('Failed to save assessment results.');
-        }
-      });
-    } else {
-      this.riskProfileService.createRiskProfile(payload).subscribe({
-        next: (res: any) => {
-          this.currentProfile = res.data;
-          this.takingTest = false;
-          this.submitting = false;
-        },
-        error: (err) => {
-          this.submitting = false;
-          alert('Failed to create risk profile.');
-        }
-      });
-    }
-  }
-
-  getRecommendedAllocation(type: string): any[] {
-    switch (type) {
-      case 'CONSERVATIVE':
-        return [
-          { name: 'Fixed Income / Debt', pct: 60, color: 'bg-emerald-500' },
-          { name: 'Mutual Funds / Large Cap', pct: 30, color: 'bg-purple-400' },
-          { name: 'Cash Reserves', pct: 10, color: 'bg-blue-400' }
-        ];
-      case 'AGGRESSIVE':
-        return [
-          { name: 'Equity / Growth Stocks', pct: 60, color: 'bg-purple-400' },
-          { name: 'Mutual Funds / Sectoral', pct: 25, color: 'bg-brand-primary' },
-          { name: 'Fixed Income / Cash', pct: 15, color: 'bg-emerald-500' }
-        ];
-      default: // MODERATE
-        return [
-          { name: 'Mutual Funds / Index Funds', pct: 40, color: 'bg-purple-400' },
-          { name: 'Equity / Large Cap Stocks', pct: 30, color: 'bg-brand-primary' },
-          { name: 'Fixed Deposits / Bonds', pct: 20, color: 'bg-emerald-500' },
-          { name: 'Cash', pct: 10, color: 'bg-blue-400' }
-        ];
-    }
+    this.riskProfileService.createRiskProfile(payload).subscribe({
+      next: (res: any) => {
+        this.currentProfile = res.data;
+        this.takingTest = false;
+      },
+      error: (err: any) => {
+        alert(err?.error?.message || 'Failed to calculate risk profile.');
+        this.takingTest = false;
+      }
+    });
   }
 }

@@ -17,10 +17,7 @@ import { AuthService } from '../../core/services/auth.service';
         <div class="absolute -bottom-24 -right-12 w-80 h-80 bg-brand-primary rounded-full opacity-20 filter blur-3xl"></div>
         
         <div class="flex items-center gap-3 z-10">
-          <div class="w-10 h-10 rounded-2xl bg-brand-primary flex items-center justify-center text-white font-bold text-xl shadow-md border border-brand-primary-dark">
-            B
-          </div>
-          <span class="font-extrabold text-2xl tracking-tight text-brand-primary-dark">BACHAT</span>
+          <img src="/logo.png" alt="BACHAT Logo" class="h-14 w-auto object-contain drop-shadow-sm" />
         </div>
 
         <div class="my-auto max-w-lg z-10">
@@ -40,6 +37,10 @@ import { AuthService } from '../../core/services/auth.service';
       <!-- Right Screen: Form -->
       <div class="w-full lg:w-1/2 flex items-center justify-center p-8 md:p-12 bg-white">
         <div class="max-w-md w-full space-y-8">
+          <!-- Mobile Brand Logo -->
+          <div class="lg:hidden flex justify-center mb-4">
+            <img src="/logo.png" alt="BACHAT Logo" class="h-11 w-auto object-contain" />
+          </div>
           <div>
             <h2 class="text-3xl font-extrabold text-text-main tracking-tight">Welcome back</h2>
             <p class="mt-2 text-sm text-text-sub">

@@ -6,30 +6,23 @@
     class="hidden md:flex flex-col bg-white border-r border-brand-border transition-all duration-300 ease-in-out h-screen sticky top-0"
   >
     <!-- Logo area -->
-    <div class="flex items-center justify-between p-5 border-b border-brand-border h-16">
+    <div class="flex items-center justify-between p-4 border-b border-brand-border h-16">
       <div class="flex items-center gap-2" *ngIf="isExpanded">
-        <div class="w-8 h-8 rounded-xl bg-brand-primary flex items-center justify-center text-white font-bold text-lg shadow-sm">
-          B
-        </div>
-        <span class="font-extrabold text-xl tracking-tight text-brand-primary-dark">BACHAT</span>
+        <img src="/logo.png" alt="BACHAT Logo" class="h-9 w-auto max-w-[170px] object-contain" />
       </div>
-      <div class="w-full flex justify-center" *ngIf="!isExpanded">
-        <div class="w-9 h-9 rounded-xl bg-brand-primary flex items-center justify-center text-white font-bold text-lg shadow-sm">
-          B
-        </div>
-      </div>
-      <button (click)="toggleSidenav()" class="text-text-sub hover:text-brand-primary-dark focus:outline-none" *ngIf="isExpanded">
+      <button (click)="toggleSidenav()" class="text-text-sub hover:text-brand-primary-dark focus:outline-none" *ngIf="isExpanded" title="Collapse Sidebar">
         <!-- SVG close arrow -->
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
         </svg>
       </button>
-      <button (click)="toggleSidenav()" class="text-text-sub hover:text-brand-primary-dark focus:outline-none" *ngIf="!isExpanded">
-        <!-- SVG open arrow -->
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-        </svg>
-      </button>
+
+      <!-- Collapsed state: centered logo icon button that expands sidebar on click -->
+      <div class="w-full flex items-center justify-center" *ngIf="!isExpanded">
+        <button (click)="toggleSidenav()" class="focus:outline-none group transition-transform hover:scale-105" title="Expand Sidebar">
+          <img src="/logo-icon.png" alt="BACHAT Icon" class="w-9 h-9 object-contain rounded-xl shadow-xs" />
+        </button>
+      </div>
     </div>
 
     <!-- Navigation items -->
@@ -199,10 +192,7 @@
   <!-- Mobile Header (hidden on md and up) -->
   <header class="md:hidden flex items-center justify-between px-5 h-16 bg-white border-b border-brand-border sticky top-0 z-40">
     <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-xl bg-brand-primary flex items-center justify-center text-white font-bold text-md shadow-sm">
-        B
-      </div>
-      <span class="font-extrabold text-lg text-brand-primary-dark">BACHAT</span>
+      <img src="/logo.png" alt="BACHAT Logo" class="h-8 w-auto max-w-[140px] object-contain" />
     </div>
     
     <button (click)="toggleMobileMenu()" class="text-text-main focus:outline-none hover:text-brand-primary">
@@ -261,9 +251,29 @@
   <main class="flex-1 flex flex-col min-w-0">
     <!-- Desktop Header -->
     <header class="hidden md:flex items-center justify-between px-8 h-16 bg-white border-b border-brand-border sticky top-0 z-30">
-      <div class="flex items-center gap-4">
-        <h2 class="text-lg font-bold text-text-main">BACHAT Financial Dashboard</h2>
-        <span class="text-xs text-text-sub px-3 py-1 bg-brand-bg border border-brand-border rounded-full font-medium">v2.0 Beta</span>
+      <!-- Dynamic Route Breadcrumbs & Live System Status -->
+      <div class="flex items-center gap-3.5">
+        <!-- Breadcrumb navigation -->
+        <div class="flex items-center gap-2 text-xs font-semibold text-text-sub">
+          <span class="w-7 h-7 flex items-center justify-center rounded-xl bg-brand-bg text-sm border border-brand-border/70 shadow-2xs">{{ currentPage.icon }}</span>
+          <span class="text-text-sub/70 font-medium">{{ currentPage.category }}</span>
+          <span class="text-text-sub/30 font-bold">/</span>
+          <span class="text-text-main font-bold text-sm tracking-tight">{{ currentPage.title }}</span>
+        </div>
+
+        <!-- Live Sync Status Indicator -->
+        <div class="flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full text-[11px] font-semibold shadow-2xs">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Live Sync</span>
+        </div>
+
+        <!-- Currency & Fiscal Indicator -->
+        <div class="hidden xl:flex items-center gap-1.5 text-[11px] font-medium text-text-sub bg-brand-bg px-2.5 py-1 rounded-full border border-brand-border">
+          <span>🇮🇳</span>
+          <span class="font-bold text-text-main">INR</span>
+          <span class="text-text-sub/40">•</span>
+          <span>FY 2026-27</span>
+        </div>
       </div>
 
       <div class="flex items-center gap-5" *ngIf="authService.currentUser() as user">

@@ -11,26 +11,64 @@ import { BudgetService } from '../../core/services/budget.service';
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, FormsModule],
   template: `
-    <div class="space-y-8 text-text-main">
+    <div class="space-y-8 text-text-main pb-10">
       <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 class="text-3xl font-extrabold tracking-tight text-text-main">Transactions</h1>
+          <div class="flex items-center gap-3">
+            <h1 class="text-3xl font-extrabold tracking-tight text-text-main">Transactions</h1>
+            <span *ngIf="isDemoMode" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary-light text-brand-primary-dark border border-brand-primary/30">
+              Demo Values Active
+            </span>
+          </div>
           <p class="text-text-sub text-sm mt-1">Track every rupee coming in and going out.</p>
         </div>
-        <button 
-          (click)="openAddModal()" 
-          class="px-5 py-3 bg-brand-primary hover:bg-brand-primary-dark text-white text-sm font-bold rounded-2xl shadow-sm hover:shadow transition-all duration-200 focus:outline-none flex items-center justify-center gap-2"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Add Transaction
-        </button>
+
+        <!-- Controls: Demo Toggle & Guide Pills -->
+        <div class="flex flex-wrap items-center gap-2">
+          <button 
+            (click)="toggleGuide()" 
+            class="text-xs font-semibold px-3.5 py-2 rounded-2xl border transition-all duration-200 flex items-center gap-1.5 shadow-sm"
+            [ngClass]="showGuide ? 'bg-brand-primary text-white border-brand-primary' : 'bg-white text-text-sub border-brand-border hover:bg-brand-bg'"
+          >
+            <span>💡</span>
+            <span>{{ showGuide ? 'Hide Guide' : 'What is Where?' }}</span>
+          </button>
+
+          <div class="flex items-center bg-white border border-brand-border rounded-2xl p-1 shadow-sm">
+            <button 
+              (click)="setMode(true)" 
+              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
+              [ngClass]="isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
+            >
+              Sample Data
+            </button>
+            <button 
+              (click)="setMode(false)" 
+              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
+              [ngClass]="!isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
+            >
+              Live Data
+            </button>
+          </div>
+
+          <button 
+            (click)="openAddModal()" 
+            class="px-4 py-2.5 bg-brand-primary hover:bg-brand-primary-dark text-white text-xs font-bold rounded-2xl shadow-sm hover:shadow transition-all duration-200 focus:outline-none flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Transaction
+          </button>
+        </div>
       </div>
 
       <!-- Filters Panel Card -->
-      <div class="bg-white border border-brand-border p-5 rounded-2xl shadow-sm space-y-4">
+      <div class="bg-white border border-brand-border p-5 rounded-2xl shadow-sm space-y-4 relative">
+        <div *ngIf="showGuide" class="mb-2 inline-flex items-center gap-1 text-[10px] font-bold text-brand-primary-dark bg-brand-primary-light px-2.5 py-0.5 rounded-md">
+          📍 Filter Controls: Filter ledger by Account, Inflow/Outflow Type, and Date Range
+        </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <!-- Account filter -->
           <div>
@@ -88,7 +126,13 @@ import { BudgetService } from '../../core/services/budget.service';
       </div>
 
       <!-- Main Transactions View -->
-      <div class="bg-white border border-brand-border rounded-2xl shadow-sm overflow-hidden">
+      <div class="bg-white border border-brand-border rounded-2xl shadow-sm overflow-hidden relative">
+        <div *ngIf="showGuide" class="p-4 pb-0">
+          <span class="inline-flex items-center gap-1 text-[10px] font-bold text-brand-primary-dark bg-brand-primary-light px-2.5 py-0.5 rounded-md">
+            📍 Transaction Ledger: Chronological financial movements with categories, account links, and credit/debit amounts
+          </span>
+        </div>
+
         <!-- Loader -->
         <div *ngIf="loading" class="p-12 text-center text-text-sub text-sm">
           Loading transactions...
@@ -123,7 +167,7 @@ import { BudgetService } from '../../core/services/budget.service';
                     {{ t.category?.categoryName || 'General' }}
                   </span>
                 </td>
-                <td class="p-4 text-text-sub">{{ t.account?.accountName || 'Cash' }}</td>
+                <td class="p-4 text-text-sub text-xs font-medium">{{ t.account?.accountName || 'Cash' }}</td>
                 <td class="p-4 text-text-sub text-xs">{{ t.date | date:'MMM d, yyyy h:mm a' }}</td>
                 <td class="p-4 text-right font-extrabold" [class.text-emerald-600]="t.type === 'INCOME'" [class.text-orange-600]="t.type === 'EXPENSE'">
                   {{ t.type === 'INCOME' ? '+' : '-' }}₹{{ t.amount | number:'1.2-2' }}
@@ -222,78 +266,74 @@ import { BudgetService } from '../../core/services/budget.service';
               </div>
             </div>
 
-            <!-- Amount Input -->
+            <!-- Amount -->
             <div>
-              <label for="amount" class="block text-xs font-bold text-text-sub uppercase tracking-wider mb-1">Amount (₹)</label>
+              <label class="block text-xs font-bold text-text-sub uppercase tracking-wider mb-1">Amount (₹)</label>
               <input 
-                id="amount" 
                 type="number" 
+                step="0.01" 
                 formControlName="amount" 
                 placeholder="0.00"
-                class="w-full px-4 py-2.5 border border-brand-border bg-brand-bg rounded-xl text-sm focus:outline-none focus:border-brand-primary"
+                class="w-full px-4 py-2.5 border border-brand-border rounded-xl bg-brand-bg text-sm focus:outline-none focus:border-brand-primary"
+                [class.border-red-400]="isFieldInvalid('amount')"
               >
-              <p *ngIf="isFieldInvalid('amount')" class="text-xs text-red-500 mt-1">Amount is required and must be positive</p>
             </div>
 
             <!-- Description -->
             <div>
-              <label for="description" class="block text-xs font-bold text-text-sub uppercase tracking-wider mb-1">Description / Merchant</label>
+              <label class="block text-xs font-bold text-text-sub uppercase tracking-wider mb-1">Description</label>
               <input 
-                id="description" 
                 type="text" 
                 formControlName="description" 
-                placeholder="e.g. Swiggy, Salary, Rent"
-                class="w-full px-4 py-2.5 border border-brand-border bg-brand-bg rounded-xl text-sm focus:outline-none focus:border-brand-primary"
+                placeholder="e.g. Grocery Shopping, Client Payment"
+                class="w-full px-4 py-2.5 border border-brand-border rounded-xl bg-brand-bg text-sm focus:outline-none focus:border-brand-primary"
+                [class.border-red-400]="isFieldInvalid('description')"
               >
-              <p *ngIf="isFieldInvalid('description')" class="text-xs text-red-500 mt-1">Description is required</p>
             </div>
 
+            <!-- Account & Category Grid -->
             <div class="grid grid-cols-2 gap-4">
-              <!-- Account Selector -->
               <div>
-                <label for="accountId" class="block text-xs font-bold text-text-sub uppercase tracking-wider mb-1">Wallet / Account</label>
+                <label class="block text-xs font-bold text-text-sub uppercase tracking-wider mb-1">Account</label>
                 <select 
-                  id="accountId"
                   formControlName="accountId"
-                  class="w-full px-3 py-2.5 border border-brand-border bg-brand-bg rounded-xl text-sm focus:outline-none focus:border-brand-primary"
+                  class="w-full px-3 py-2.5 border border-brand-border rounded-xl bg-brand-bg text-xs focus:outline-none focus:border-brand-primary"
+                  [class.border-red-400]="isFieldInvalid('accountId')"
                 >
-                  <option value="" disabled>Select Account</option>
+                  <option value="">Select Account</option>
                   <option *ngFor="let acc of accountsList" [value]="acc.accountId">{{ acc.accountName }}</option>
                 </select>
-                <p *ngIf="isFieldInvalid('accountId')" class="text-xs text-red-500 mt-1">Account is required</p>
               </div>
 
-              <!-- Category Selector -->
               <div>
-                <label for="categoryId" class="block text-xs font-bold text-text-sub uppercase tracking-wider mb-1">Category</label>
+                <label class="block text-xs font-bold text-text-sub uppercase tracking-wider mb-1">Category</label>
                 <select 
-                  id="categoryId"
                   formControlName="categoryId"
-                  class="w-full px-3 py-2.5 border border-brand-border bg-brand-bg rounded-xl text-sm focus:outline-none focus:border-brand-primary"
+                  class="w-full px-3 py-2.5 border border-brand-border rounded-xl bg-brand-bg text-xs focus:outline-none focus:border-brand-primary"
+                  [class.border-red-400]="isFieldInvalid('categoryId')"
                 >
-                  <option value="" disabled>Select Category</option>
-                  <option *ngFor="let cat of categoriesList" [value]="cat.categoryId">{{ cat.categoryName }} ({{ cat.type }})</option>
+                  <option value="">Select Category</option>
+                  <option *ngFor="let cat of categoriesList" [value]="cat.categoryId">{{ cat.categoryName }}</option>
                 </select>
-                <p *ngIf="isFieldInvalid('categoryId')" class="text-xs text-red-500 mt-1">Category is required</p>
               </div>
             </div>
 
             <!-- Date -->
             <div>
-              <label for="date" class="block text-xs font-bold text-text-sub uppercase tracking-wider mb-1">Date</label>
+              <label class="block text-xs font-bold text-text-sub uppercase tracking-wider mb-1">Date & Time</label>
               <input 
-                id="date" 
                 type="datetime-local" 
                 formControlName="date"
-                class="w-full px-4 py-2.5 border border-brand-border bg-brand-bg rounded-xl text-sm focus:outline-none focus:border-brand-primary"
+                class="w-full px-4 py-2.5 border border-brand-border rounded-xl bg-brand-bg text-sm focus:outline-none focus:border-brand-primary"
               >
             </div>
 
+            <!-- Actions -->
             <div class="flex justify-end gap-3 pt-4 border-t border-brand-border">
               <button 
                 type="button" 
-                (click)="closeModal()" 
-                class="px-4 py-2.5 border border-brand-border rounded-xl text-xs font-bold text-text-sub hover:bg-brand-bg focus:outline-none"
+                (click)="closeModal()"
+                class="px-4 py-2.5 border border-brand-border hover:bg-brand-bg text-text-sub text-xs font-bold rounded-xl focus:outline-none"
               >
                 Cancel
               </button>
@@ -322,7 +362,10 @@ export class TransactionsComponent implements OnInit {
   accountsList: any[] = [];
   categoriesList: any[] = [];
   
-  loading = true;
+  loading = false;
+  isDemoMode = true;
+  showGuide = true;
+
   showModal = false;
   editingTransactionId: string | null = null;
   formSubmitting = false;
@@ -339,6 +382,105 @@ export class TransactionsComponent implements OnInit {
   filterStartDate = '';
   filterEndDate = '';
 
+  // Cached live data
+  liveTransactions: any[] = [];
+  liveAccountsList: any[] = [];
+  liveCategoriesList: any[] = [];
+
+  // Rich demo dataset
+  readonly demoAccounts = [
+    { accountId: 'acc-1', accountName: 'HDFC Salary Account' },
+    { accountId: 'acc-2', accountName: 'ICICI Coral Credit Card' },
+    { accountId: 'acc-3', accountName: 'Groww Mutual Funds & SIP' },
+    { accountId: 'acc-4', accountName: 'Physical Cash & Wallet' }
+  ];
+
+  readonly demoCategories = [
+    { categoryId: 'cat-1', categoryName: 'Salary' },
+    { categoryId: 'cat-2', categoryName: 'Groceries' },
+    { categoryId: 'cat-3', categoryName: 'Shopping' },
+    { categoryId: 'cat-4', categoryName: 'Housing' },
+    { categoryId: 'cat-5', categoryName: 'Utilities' },
+    { categoryId: 'cat-6', categoryName: 'Freelance' },
+    { categoryId: 'cat-7', categoryName: 'Dining Out' },
+    { categoryId: 'cat-8', categoryName: 'Entertainment' }
+  ];
+
+  readonly demoTransactions = [
+    {
+      transactionId: 't-1',
+      description: 'TechCorp Solutions - Monthly Salary Credit',
+      category: { categoryName: 'Salary' },
+      account: { accountName: 'HDFC Salary Account' },
+      date: new Date().toISOString(),
+      amount: 85000.00,
+      type: 'INCOME'
+    },
+    {
+      transactionId: 't-2',
+      description: "Nature's Basket - Organic Vegetables & Groceries",
+      category: { categoryName: 'Groceries' },
+      account: { accountName: 'ICICI Coral Credit Card' },
+      date: new Date(Date.now() - 86400000).toISOString(),
+      amount: 4680.00,
+      type: 'EXPENSE'
+    },
+    {
+      transactionId: 't-3',
+      description: 'Amazon India - Sony Wireless Noise Cancelling Headphones',
+      category: { categoryName: 'Shopping' },
+      account: { accountName: 'ICICI Coral Credit Card' },
+      date: new Date(Date.now() - 172800000).toISOString(),
+      amount: 6499.00,
+      type: 'EXPENSE'
+    },
+    {
+      transactionId: 't-4',
+      description: 'Urban Company - AC Deep Cleaning & Home Maintenance',
+      category: { categoryName: 'Housing' },
+      account: { accountName: 'HDFC Salary Account' },
+      date: new Date(Date.now() - 259200000).toISOString(),
+      amount: 2150.00,
+      type: 'EXPENSE'
+    },
+    {
+      transactionId: 't-5',
+      description: 'Tata Power - Electricity & Utility Bill Payment',
+      category: { categoryName: 'Utilities' },
+      account: { accountName: 'HDFC Salary Account' },
+      date: new Date(Date.now() - 345600000).toISOString(),
+      amount: 1850.00,
+      type: 'EXPENSE'
+    },
+    {
+      transactionId: 't-6',
+      description: 'FinTech App - UI/UX Design Consulting Retainer',
+      category: { categoryName: 'Freelance' },
+      account: { accountName: 'HDFC Salary Account' },
+      date: new Date(Date.now() - 432000000).toISOString(),
+      amount: 25000.00,
+      type: 'INCOME'
+    },
+    {
+      transactionId: 't-7',
+      description: 'Swiggy Gourmet Dining & Pizza Delivery',
+      category: { categoryName: 'Dining Out' },
+      account: { accountName: 'Physical Cash & Wallet' },
+      date: new Date(Date.now() - 518400000).toISOString(),
+      amount: 1420.00,
+      type: 'EXPENSE'
+    },
+    {
+      transactionId: 't-8',
+      description: 'Netflix & Spotify Premium Annual Subscription',
+      category: { categoryName: 'Entertainment' },
+      account: { accountName: 'ICICI Coral Credit Card' },
+      date: new Date(Date.now() - 604800000).toISOString(),
+      amount: 999.00,
+      type: 'EXPENSE'
+    }
+  ];
+
   transactionForm: FormGroup = this.fb.group({
     type: ['EXPENSE', [Validators.required]],
     amount: ['', [Validators.required, Validators.min(0.01)]],
@@ -350,18 +492,51 @@ export class TransactionsComponent implements OnInit {
 
   ngOnInit() {
     const session = this.authService.currentUser();
+    this.userId = session ? session.userId : 'demo-user-id';
+    
+    // Apply demo data by default
+    this.applyDemoData();
+
     if (session) {
-      this.userId = session.userId;
       this.loadSupportData();
       this.loadTransactions();
     }
+  }
+
+  toggleGuide() {
+    this.showGuide = !this.showGuide;
+  }
+
+  setMode(demo: boolean) {
+    this.isDemoMode = demo;
+    if (demo) {
+      this.applyDemoData();
+    } else {
+      this.applyLiveData();
+    }
+  }
+
+  private applyDemoData() {
+    this.transactions = [...this.demoTransactions];
+    this.accountsList = [...this.demoAccounts];
+    this.categoriesList = [...this.demoCategories];
+    this.totalPages = 1;
+    this.loading = false;
+  }
+
+  private applyLiveData() {
+    this.transactions = [...this.liveTransactions];
+    this.accountsList = [...this.liveAccountsList];
+    this.categoriesList = [...this.liveCategoriesList];
+    this.loading = false;
   }
 
   loadSupportData() {
     this.accountService.getAccounts(this.userId).subscribe({
       next: (res: any) => {
         if (res && res.data) {
-          this.accountsList = res.data;
+          this.liveAccountsList = res.data;
+          if (!this.isDemoMode) this.accountsList = res.data;
         }
       }
     });
@@ -369,15 +544,14 @@ export class TransactionsComponent implements OnInit {
     this.budgetService.getCategories(this.userId).subscribe({
       next: (res: any) => {
         if (res && res.data) {
-          this.categoriesList = res.data;
+          this.liveCategoriesList = res.data;
+          if (!this.isDemoMode) this.categoriesList = res.data;
         }
       }
     });
   }
 
   loadTransactions() {
-    this.loading = true;
-    
     const params: any = {
       userId: this.userId,
       page: this.currentPage,
@@ -393,19 +567,25 @@ export class TransactionsComponent implements OnInit {
     this.transactionService.getTransactions(params).subscribe({
       next: (res: any) => {
         if (res && res.data) {
-          this.transactions = res.data.content || [];
+          this.liveTransactions = res.data.content || [];
           this.totalPages = res.data.totalPages || 1;
+          if (!this.isDemoMode) {
+            this.transactions = [...this.liveTransactions];
+          }
         }
-        this.loading = false;
       },
-      error: (err) => {
-        console.error('Error loading transactions', err);
-        this.loading = false;
-      }
+      error: (err) => console.warn('Live transactions fetch error', err)
     });
   }
 
   applyFilters() {
+    if (this.isDemoMode) {
+      this.transactions = this.demoTransactions.filter(t => {
+        const matchesType = !this.filterType || t.type === this.filterType;
+        return matchesType;
+      });
+      return;
+    }
     this.currentPage = 0;
     this.loadTransactions();
   }
@@ -416,13 +596,17 @@ export class TransactionsComponent implements OnInit {
     this.filterStartDate = '';
     this.filterEndDate = '';
     this.currentPage = 0;
-    this.loadTransactions();
+    if (this.isDemoMode) {
+      this.applyDemoData();
+    } else {
+      this.loadTransactions();
+    }
   }
 
   goToPage(page: number) {
     if (page >= 0 && page < this.totalPages) {
       this.currentPage = page;
-      this.loadTransactions();
+      if (!this.isDemoMode) this.loadTransactions();
     }
   }
 
@@ -454,8 +638,8 @@ export class TransactionsComponent implements OnInit {
       type: transaction.type,
       amount: transaction.amount,
       description: transaction.description,
-      accountId: transaction.account?.accountId || '',
-      categoryId: transaction.category?.categoryId || '',
+      accountId: transaction.account?.accountId || (this.accountsList[0]?.accountId || ''),
+      categoryId: transaction.category?.categoryId || (this.categoriesList[0]?.categoryId || ''),
       date: transaction.date ? transaction.date.substring(0, 16) : ''
     });
     this.showModal = true;
@@ -474,15 +658,28 @@ export class TransactionsComponent implements OnInit {
     this.formSubmitting = true;
     const formVal = this.transactionForm.value;
     
-    // Parse date if empty
-    if (!formVal.date) {
-      formVal.date = new Date().toISOString();
-    } else {
-      formVal.date = new Date(formVal.date).toISOString();
+    // In demo mode, simulate instant addition
+    if (this.isDemoMode) {
+      const selectedCat = this.categoriesList.find(c => c.categoryId === formVal.categoryId);
+      const selectedAcc = this.accountsList.find(a => a.accountId === formVal.accountId);
+      const newTx = {
+        transactionId: 'demo-' + Date.now(),
+        description: formVal.description,
+        amount: parseFloat(formVal.amount),
+        type: formVal.type,
+        date: formVal.date ? new Date(formVal.date).toISOString() : new Date().toISOString(),
+        category: { categoryName: selectedCat ? selectedCat.categoryName : 'General' },
+        account: { accountName: selectedAcc ? selectedAcc.accountName : 'Cash' }
+      };
+      this.transactions.unshift(newTx);
+      this.formSubmitting = false;
+      this.closeModal();
+      return;
     }
 
     const payload = {
       ...formVal,
+      date: formVal.date ? new Date(formVal.date).toISOString() : new Date().toISOString(),
       userId: this.userId
     };
 
@@ -515,13 +712,13 @@ export class TransactionsComponent implements OnInit {
 
   deleteTransaction(id: string) {
     if (confirm('Are you sure you want to delete this transaction record?')) {
+      if (this.isDemoMode) {
+        this.transactions = this.transactions.filter(t => t.transactionId !== id);
+        return;
+      }
       this.transactionService.deleteTransaction(id).subscribe({
-        next: () => {
-          this.loadTransactions();
-        },
-        error: (err) => {
-          alert(err?.error?.message || 'Failed to delete transaction.');
-        }
+        next: () => this.loadTransactions(),
+        error: (err) => alert(err?.error?.message || 'Failed to delete transaction.')
       });
     }
   }
