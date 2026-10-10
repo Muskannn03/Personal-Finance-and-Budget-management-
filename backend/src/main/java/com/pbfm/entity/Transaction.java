@@ -80,6 +80,87 @@ public class Transaction extends AuditableEntity {
         this.categoryId = categoryId;
     }
 
+    @Transient
+    private String description;
+
+    @Transient
+    private String accountName;
+
+    @Transient
+    private String categoryName;
+
+    public String getDescription() {
+        if (description != null && !description.trim().isEmpty()) {
+            return description;
+        }
+        if (category != null && category.getCategoryName() != null) {
+            return category.getCategoryName();
+        }
+        return type == TransactionType.INCOME ? "Income Deposit" : "Expense Payment";
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getAccountName() {
+        if (account != null) {
+            return account.getAccountName();
+        }
+        return accountName;
+    }
+
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
+    }
+
+    public String getCategoryName() {
+        if (category != null) {
+            return category.getCategoryName();
+        }
+        return categoryName;
+    }
+
+    public void setCategoryName(String categoryName) {
+        this.categoryName = categoryName;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("category")
+    public java.util.Map<String, Object> getCategorySummary() {
+        if (category != null) {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("categoryId", category.getCategoryId());
+            map.put("categoryName", category.getCategoryName());
+            map.put("type", category.getType() != null ? category.getType().name() : null);
+            return map;
+        }
+        if (categoryName != null) {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("categoryId", categoryId);
+            map.put("categoryName", categoryName);
+            return map;
+        }
+        return null;
+    }
+
+    @com.fasterxml.jackson.annotation.JsonProperty("account")
+    public java.util.Map<String, Object> getAccountSummary() {
+        if (account != null) {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("accountId", account.getAccountId());
+            map.put("accountName", account.getAccountName());
+            map.put("accountType", account.getAccountType() != null ? account.getAccountType().name() : null);
+            return map;
+        }
+        if (accountName != null) {
+            java.util.Map<String, Object> map = new java.util.HashMap<>();
+            map.put("accountId", accountId);
+            map.put("accountName", accountName);
+            return map;
+        }
+        return null;
+    }
+
     @Column(name = "amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 

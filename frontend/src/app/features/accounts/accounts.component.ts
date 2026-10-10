@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -15,14 +15,11 @@ import { AccountService } from '../../core/services/account.service';
         <div>
           <div class="flex items-center gap-3">
             <h1 class="text-3xl font-extrabold tracking-tight text-text-main">My Wallets</h1>
-            <span *ngIf="isDemoMode" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary-light text-brand-primary-dark border border-brand-primary/30">
-              Demo Values Active
-            </span>
           </div>
           <p class="text-text-sub text-sm mt-1">Manage cash, bank accounts, and credit cards in one place.</p>
         </div>
 
-        <!-- Controls: Demo Toggle & Guide Pills -->
+        <!-- Controls -->
         <div class="flex flex-wrap items-center gap-2">
           <button 
             (click)="toggleGuide()" 
@@ -32,23 +29,6 @@ import { AccountService } from '../../core/services/account.service';
             <span>💡</span>
             <span>{{ showGuide ? 'Hide Guide' : 'What is Where?' }}</span>
           </button>
-
-          <div class="flex items-center bg-white border border-brand-border rounded-2xl p-1 shadow-sm">
-            <button 
-              (click)="setMode(true)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Sample Data
-            </button>
-            <button 
-              (click)="setMode(false)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="!isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Live Data
-            </button>
-          </div>
 
           <button 
             (click)="openAddModal()" 
@@ -216,28 +196,17 @@ export class AccountsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private accountService = inject(AccountService);
+  private cdr = inject(ChangeDetectorRef);
 
   accounts: any[] = [];
-  netWorth = 142850;
-  loading = false;
-  isDemoMode = true;
-  showGuide = true;
+  netWorth = 0;
+  loading = true;
+  showGuide = false;
 
   showModal = false;
   editingAccountId: string | null = null;
   formSubmitting = false;
   userId = '';
-
-  // Cached live data
-  liveAccounts: any[] = [];
-  liveNetWorth = 0;
-
-  readonly demoAccounts = [
-    { accountId: 'w-1', accountName: 'HDFC Salary Account', accountType: 'SAVINGS', balance: 82450.00 },
-    { accountId: 'w-2', accountName: 'ICICI Coral Platinum Card', accountType: 'CREDIT_CARD', balance: -11400.00 },
-    { accountId: 'w-3', accountName: 'Groww Mutual Funds & SIP', accountType: 'INVESTMENT', balance: 65500.00 },
-    { accountId: 'w-4', accountName: 'Physical Cash & Wallet', accountType: 'CASH', balance: 6300.00 }
-  ];
 
   accountForm: FormGroup = this.fb.group({
     accountName: ['', [Validators.required]],
@@ -246,60 +215,47 @@ export class AccountsComponent implements OnInit {
   });
 
   ngOnInit() {
-    const session = this.authService.currentUser();
-    this.userId = session ? session.userId : 'demo-user-id';
-
-    this.applyDemoData();
-
-    if (session) {
+    this.userId = this.authService.getUserId();
+    if (this.userId) {
       this.loadAccounts();
+    } else {
+      this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 
   toggleGuide() {
     this.showGuide = !this.showGuide;
-  }
-
-  setMode(demo: boolean) {
-    this.isDemoMode = demo;
-    if (demo) {
-      this.applyDemoData();
-    } else {
-      this.applyLiveData();
-    }
-  }
-
-  private applyDemoData() {
-    this.accounts = [...this.demoAccounts];
-    this.calculateNetWorth();
-    this.loading = false;
-  }
-
-  private applyLiveData() {
-    this.accounts = [...this.liveAccounts];
-    this.netWorth = this.liveNetWorth;
-    this.loading = false;
+    this.cdr.markForCheck();
   }
 
   loadAccounts() {
+    if (!this.userId) {
+      this.loading = false;
+      this.accounts = [];
+      this.cdr.markForCheck();
+      return;
+    }
+    this.loading = true;
+    this.cdr.markForCheck();
+
     this.accountService.getAccounts(this.userId).subscribe({
       next: (res: any) => {
+        this.loading = false;
         if (res && res.data) {
-          this.liveAccounts = res.data;
-          this.liveNetWorth = 0;
-          this.liveAccounts.forEach(acc => {
-            if (acc.accountType === 'CREDIT_CARD') {
-              this.liveNetWorth -= Math.abs(acc.balance || 0);
-            } else {
-              this.liveNetWorth += acc.balance || 0;
-            }
-          });
-          if (!this.isDemoMode) {
-            this.applyLiveData();
-          }
+          this.accounts = res.data;
+          this.calculateNetWorth();
+        } else {
+          this.accounts = [];
         }
+        this.cdr.markForCheck();
       },
-      error: (err) => console.warn('Could not load live accounts', err)
+      error: (err) => {
+        this.loading = false;
+        this.accounts = [];
+        this.cdr.markForCheck();
+        console.warn('Could not load live accounts', err);
+      }
     });
   }
 
@@ -341,7 +297,7 @@ export class AccountsComponent implements OnInit {
     this.accountForm.reset({
       accountName: '',
       accountType: 'SAVINGS',
-      balance: ''
+      balance: 0
     });
     this.showModal = true;
   }
@@ -368,20 +324,6 @@ export class AccountsComponent implements OnInit {
 
     this.formSubmitting = true;
     const formVal = this.accountForm.value;
-
-    if (this.isDemoMode) {
-      const newAcc = {
-        accountId: 'demo-w-' + Date.now(),
-        accountName: formVal.accountName,
-        accountType: formVal.accountType,
-        balance: parseFloat(formVal.balance || 0)
-      };
-      this.accounts.push(newAcc);
-      this.calculateNetWorth();
-      this.formSubmitting = false;
-      this.closeModal();
-      return;
-    }
 
     const payload = {
       ...formVal,
@@ -417,11 +359,6 @@ export class AccountsComponent implements OnInit {
 
   deleteAccount(id: string) {
     if (confirm('Are you sure you want to delete this wallet?')) {
-      if (this.isDemoMode) {
-        this.accounts = this.accounts.filter(a => a.accountId !== id);
-        this.calculateNetWorth();
-        return;
-      }
       this.accountService.deleteAccount(id).subscribe({
         next: () => this.loadAccounts(),
         error: (err) => alert(err?.error?.message || 'Failed to delete wallet.')

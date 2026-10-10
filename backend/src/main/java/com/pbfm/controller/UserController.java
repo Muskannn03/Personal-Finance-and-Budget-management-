@@ -5,6 +5,7 @@ import com.pbfm.exception.DuplicateResourceException;
 import com.pbfm.exception.ResourceNotFoundException;
 import com.pbfm.repository.UserRepository;
 import com.pbfm.response.ApiResponse;
+import com.pbfm.response.UserResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -31,37 +32,47 @@ public class UserController {
 
     @PostMapping
     @Operation(summary = "Create a new user")
-    public ResponseEntity<ApiResponse<User>> createUser(@Valid @RequestBody User request) {
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(@Valid @RequestBody User request) {
         log.info("Creating a new user with email: {}", request.getEmail());
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Email already exists: " + request.getEmail());
         }
 
-        // We assume request.getPasswordHash() carries raw password during registration
-        // (to match JSON name field from frontend or just support direct mapping)
-        request.setPasswordHash(passwordEncoder.encode(request.getPasswordHash()));
+        String rawPassword = request.getPasswordHash() != null && !request.getPasswordHash().trim().isEmpty()
+                ? request.getPasswordHash()
+                : request.getPassword();
+        if (rawPassword == null || rawPassword.trim().isEmpty()) {
+            throw new IllegalArgumentException("Password is required");
+        }
+        request.setPasswordHash(passwordEncoder.encode(rawPassword));
+        if (request.getRole() == null || request.getRole().trim().isEmpty()) {
+            request.setRole("USER");
+        }
+        if (request.getCurrencyPreference() == null || request.getCurrencyPreference().trim().isEmpty()) {
+            request.setCurrencyPreference("INR");
+        }
         User savedUser = userRepository.save(request);
         
         log.info("User created successfully with ID: {}", savedUser.getUserId());
         return new ResponseEntity<>(
-                ApiResponse.success(savedUser, "User created successfully"),
+                ApiResponse.success(UserResponse.fromEntity(savedUser), "User created successfully"),
                 HttpStatus.CREATED
         );
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get user by ID")
-    public ResponseEntity<ApiResponse<User>> getUserById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserById(@PathVariable UUID id) {
         log.info("Fetching user by ID: {}", id);
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
         
-        return ResponseEntity.ok(ApiResponse.success(user));
+        return ResponseEntity.ok(ApiResponse.success(UserResponse.fromEntity(user)));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing user")
-    public ResponseEntity<ApiResponse<User>> updateUser(
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(
             @PathVariable UUID id,
             @Valid @RequestBody User request) {
         log.info("Updating user with ID: {}", id);
@@ -82,7 +93,7 @@ public class UserController {
         User updatedUser = userRepository.save(user);
 
         log.info("User with ID: {} updated successfully", id);
-        return ResponseEntity.ok(ApiResponse.success(updatedUser, "User updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(UserResponse.fromEntity(updatedUser), "User updated successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -99,9 +110,10 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "Get all users with pagination")
-    public ResponseEntity<ApiResponse<Page<User>>> getAllUsers(Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<UserResponse>>> getAllUsers(Pageable pageable) {
         log.info("Fetching page {} of all users", pageable.getPageNumber());
         Page<User> usersPage = userRepository.findAll(pageable);
-        return ResponseEntity.ok(ApiResponse.success(usersPage));
+        Page<UserResponse> responsePage = usersPage.map(UserResponse::fromEntity);
+        return ResponseEntity.ok(ApiResponse.success(responsePage));
     }
 }

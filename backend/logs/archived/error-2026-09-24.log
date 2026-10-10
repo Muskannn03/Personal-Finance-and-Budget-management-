@@ -1,0 +1,19 @@
+2026-09-24 00:02:09.896 [http-nio-8080-exec-2] ERROR com.pbfm.security.JwtTokenProvider - Invalid JWT token format
+2026-09-24 00:02:09.926 [http-nio-8080-exec-2] WARN  c.p.security.JwtAuthenticationFilter - Token is invalid
+2026-09-24 00:02:10.051 [http-nio-8080-exec-3] ERROR com.pbfm.security.JwtTokenProvider - Invalid JWT token format
+2026-09-24 00:02:10.051 [http-nio-8080-exec-3] WARN  c.p.security.JwtAuthenticationFilter - Token is invalid
+2026-09-24 00:03:35.746 [http-nio-8080-exec-6] ERROR com.pbfm.security.JwtTokenProvider - Invalid JWT token format
+2026-09-24 00:03:35.746 [http-nio-8080-exec-6] WARN  c.p.security.JwtAuthenticationFilter - Token is invalid
+2026-09-24 00:03:35.826 [http-nio-8080-exec-8] ERROR com.pbfm.security.JwtTokenProvider - Invalid JWT token format
+2026-09-24 00:03:35.826 [http-nio-8080-exec-8] WARN  c.p.security.JwtAuthenticationFilter - Token is invalid
+2026-09-24 00:07:41.524 [http-nio-8080-exec-4] WARN  c.p.exception.GlobalExceptionHandler - Business Exception [404 NOT_FOUND]: Risk profile not found for user: c30e6c25-8f19-4a0f-81fb-d70d82473e74
+2026-09-24 00:07:41.529 [http-nio-8080-exec-4] WARN  o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.pbfm.exception.ResourceNotFoundException: Risk profile not found for user: c30e6c25-8f19-4a0f-81fb-d70d82473e74]
+2026-09-24 15:23:22.363 [restartedMain] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-24 15:23:29.826 [restartedMain] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-24 15:23:42.368 [http-nio-8080-exec-5] WARN  o.s.d.w.c.SpringDataJacksonConfiguration$PageModule$PlainPageSerializationWarning - Serializing PageImpl instances as-is is not supported, meaning that there is no guarantee about the stability of the resulting JSON structure!
+	For a stable JSON structure, please use Spring Data's PagedModel (globally via @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO))
+	or Spring HATEOAS and Spring Data's PagedResourcesAssembler as documented in https://docs.spring.io/spring-data/commons/reference/repositories/core-extensions.html#core.web.pageables.
+
+2026-09-24 15:31:01.754 [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=5m41s23ms583µs).
+2026-09-24 15:32:39.045 [http-nio-8080-exec-3] WARN  c.p.exception.GlobalExceptionHandler - Business Exception [404 NOT_FOUND]: Risk profile not found for user: c30e6c25-8f19-4a0f-81fb-d70d82473e74
+2026-09-24 15:32:39.052 [http-nio-8080-exec-3] WARN  o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [com.pbfm.exception.ResourceNotFoundException: Risk profile not found for user: c30e6c25-8f19-4a0f-81fb-d70d82473e74]

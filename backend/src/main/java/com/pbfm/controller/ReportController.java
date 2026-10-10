@@ -36,18 +36,31 @@ public class ReportController {
     private final UserRepository userRepository;
     private final EntityManager entityManager;
 
+    private UUID parseUserId(String userIdStr) {
+        if (userIdStr == null || userIdStr.trim().isEmpty()) {
+            throw new IllegalArgumentException("User ID is required");
+        }
+        String clean = userIdStr.trim().replaceAll("[:;,.]+$", "").trim();
+        try {
+            return UUID.fromString(clean);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid UUID format for userId: '" + userIdStr + "'. Expected standard UUID format (e.g. 123e4567-e89b-12d3-a456-426614174000)");
+        }
+    }
+
     @GetMapping("/dashboard")
     @Operation(summary = "Get aggregated dashboard analytics for a user")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboardAnalytics(@RequestParam UUID userId) {
-        log.info("Generating dashboard analytics for user ID: {}", userId);
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found with id: " + userId);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getDashboardAnalytics(@RequestParam String userId) {
+        UUID userUuid = parseUserId(userId);
+        log.info("Generating dashboard analytics for user ID: {}", userUuid);
+        if (!userRepository.existsById(userUuid)) {
+            throw new ResourceNotFoundException("User not found with id: " + userUuid);
         }
 
         Map<String, Object> analytics = new HashMap<>();
 
         // Net Worth
-        BigDecimal netWorth = accountRepository.getNetWorthByUserId(userId);
+        BigDecimal netWorth = accountRepository.getNetWorthByUserId(userUuid);
         analytics.put("netWorth", netWorth);
 
         // Monthly Income and Expense
@@ -55,15 +68,15 @@ public class ReportController {
         LocalDateTime monthEnd = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth()).atTime(LocalTime.MAX);
         
         BigDecimal monthlyIncome = transactionRepository.getTotalTransactionAmountByTypeInDateRange(
-                userId, TransactionType.INCOME, monthStart, monthEnd);
+                userUuid, TransactionType.INCOME, monthStart, monthEnd);
         BigDecimal monthlyExpense = transactionRepository.getTotalTransactionAmountByTypeInDateRange(
-                userId, TransactionType.EXPENSE, monthStart, monthEnd);
+                userUuid, TransactionType.EXPENSE, monthStart, monthEnd);
 
         analytics.put("monthlyIncome", monthlyIncome);
         analytics.put("monthlyExpense", monthlyExpense);
 
         // Account Summaries
-        List<Account> accounts = accountRepository.findByUser_UserId(userId);
+        List<Account> accounts = accountRepository.findByUser_UserId(userUuid);
         List<Map<String, Object>> accountSummaryList = new ArrayList<>();
         for (Account acc : accounts) {
             Map<String, Object> summary = new HashMap<>();
@@ -76,7 +89,7 @@ public class ReportController {
         analytics.put("accounts", accountSummaryList);
 
         // Goal Progress Summary
-        List<Goal> goals = goalRepository.findByUser_UserId(userId);
+        List<Goal> goals = goalRepository.findByUser_UserId(userUuid);
         List<Map<String, Object>> goalSummaryList = new ArrayList<>();
         for (Goal goal : goals) {
             Map<String, Object> summary = new HashMap<>();
@@ -90,26 +103,31 @@ public class ReportController {
         }
         analytics.put("goals", goalSummaryList);
 
-        log.info("Dashboard analytics compiled successfully for user ID: {}", userId);
+        log.info("Dashboard analytics compiled successfully for user ID: {}", userUuid);
         return ResponseEntity.ok(ApiResponse.success(analytics));
     }
 
     @GetMapping("/spending")
     @Operation(summary = "Get category-wise spending report in a date range")
     public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getCategorySpendingReport(
-            @RequestParam UUID userId,
-            @RequestParam String startDate,
-            @RequestParam String endDate) {
-        log.info("Generating category spending report for user ID: {} from {} to {}", userId, startDate, endDate);
+            @RequestParam String userId,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        UUID userUuid = parseUserId(userId);
+        log.info("Generating category spending report for user ID: {} from {} to {}", userUuid, startDate, endDate);
 
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found with id: " + userId);
+        if (!userRepository.existsById(userUuid)) {
+            throw new ResourceNotFoundException("User not found with id: " + userUuid);
         }
 
-        LocalDateTime start = LocalDate.parse(startDate).atStartOfDay();
-        LocalDateTime end = LocalDate.parse(endDate).atTime(LocalTime.MAX);
+        LocalDateTime start = (startDate != null && !startDate.trim().isEmpty())
+                ? LocalDate.parse(startDate.trim()).atStartOfDay()
+                : LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        LocalDateTime end = (endDate != null && !endDate.trim().isEmpty())
+                ? LocalDate.parse(endDate.trim()).atTime(LocalTime.MAX)
+                : LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth()).atTime(LocalTime.MAX);
 
-        List<Object[]> rawSummary = transactionRepository.getCategoryWiseSpendingSummary(userId, start, end);
+        List<Object[]> rawSummary = transactionRepository.getCategoryWiseSpendingSummary(userUuid, start, end);
         List<Map<String, Object>> result = new ArrayList<>();
         
         for (Object[] row : rawSummary) {
@@ -119,37 +137,49 @@ public class ReportController {
             result.add(item);
         }
 
-        log.info("Category spending report generated successfully with {} categories for user ID: {}", result.size(), userId);
+        log.info("Category spending report generated successfully with {} categories for user ID: {}", result.size(), userUuid);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
     @GetMapping("/budget-utilization")
     @Operation(summary = "Get budget utilization report for a user's active budgets")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getBudgetUtilizationReport(@RequestParam UUID userId) {
-        log.info("Generating budget utilization report for user ID: {}", userId);
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found with id: " + userId);
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getBudgetUtilizationReport(@RequestParam String userId) {
+        UUID userUuid = parseUserId(userId);
+        log.info("Generating budget utilization report for user ID: {}", userUuid);
+        if (!userRepository.existsById(userUuid)) {
+            throw new ResourceNotFoundException("User not found with id: " + userUuid);
         }
 
-        List<Budget> budgets = budgetRepository.findByUser_UserId(userId);
+        List<Budget> budgets = budgetRepository.findByUser_UserId(userUuid);
         List<Map<String, Object>> report = new ArrayList<>();
 
         for (Budget budget : budgets) {
-            LocalDateTime start = budget.getStartDate().atStartOfDay();
-            LocalDateTime end = budget.getEndDate().atTime(23, 59, 59);
+            LocalDateTime start = budget.getStartDate() != null 
+                    ? budget.getStartDate().atStartOfDay() 
+                    : LocalDate.now().withDayOfMonth(1).atStartOfDay();
+            LocalDateTime end = budget.getEndDate() != null 
+                    ? budget.getEndDate().atTime(23, 59, 59) 
+                    : LocalDate.now().plusMonths(1).withDayOfMonth(1).minusDays(1).atTime(23, 59, 59);
 
-            BigDecimal currentTotal = transactionRepository.getTotalAmountByCategoryIdAndTypeInDateRange(
-                    userId, budget.getCategory().getCategoryId(), TransactionType.EXPENSE, start, end);
+            UUID categoryId = budget.getCategory() != null ? budget.getCategory().getCategoryId() : null;
+            String categoryName = budget.getCategory() != null ? budget.getCategory().getCategoryName() : "General";
+
+            BigDecimal currentTotal = BigDecimal.ZERO;
+            if (categoryId != null) {
+                currentTotal = transactionRepository.getTotalAmountByCategoryIdAndTypeInDateRange(
+                        userUuid, categoryId, TransactionType.EXPENSE, start, end);
+            }
 
             BigDecimal utilizationPct = BigDecimal.ZERO;
-            if (budget.getLimitAmount().compareTo(BigDecimal.ZERO) > 0) {
+            if (budget.getLimitAmount() != null && budget.getLimitAmount().compareTo(BigDecimal.ZERO) > 0) {
                 utilizationPct = currentTotal.multiply(new BigDecimal("100"))
                         .divide(budget.getLimitAmount(), 2, RoundingMode.HALF_UP);
             }
 
             Map<String, Object> item = new HashMap<>();
             item.put("budgetId", budget.getBudgetId());
-            item.put("categoryName", budget.getCategory().getCategoryName());
+            item.put("categoryName", categoryName);
+            item.put("categoryId", categoryId);
             item.put("limitAmount", budget.getLimitAmount());
             item.put("actualSpent", currentTotal);
             item.put("utilizationPercentage", utilizationPct);
@@ -159,17 +189,18 @@ public class ReportController {
             report.add(item);
         }
 
-        log.info("Budget utilization report generated successfully with {} budgets for user ID: {}", report.size(), userId);
+        log.info("Budget utilization report generated successfully with {} budgets for user ID: {}", report.size(), userUuid);
         return ResponseEntity.ok(ApiResponse.success(report));
     }
 
     @GetMapping("/monthly-trend")
     @Operation(summary = "Get monthly income vs expense trends")
     @SuppressWarnings("unchecked")
-    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMonthlyIncomeExpenseTrends(@RequestParam UUID userId) {
-        log.info("Generating monthly income vs expense trends for user ID: {}", userId);
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found with id: " + userId);
+    public ResponseEntity<ApiResponse<List<Map<String, Object>>>> getMonthlyIncomeExpenseTrends(@RequestParam String userId) {
+        UUID userUuid = parseUserId(userId);
+        log.info("Generating monthly income vs expense trends for user ID: {}", userUuid);
+        if (!userRepository.existsById(userUuid)) {
+            throw new ResourceNotFoundException("User not found with id: " + userUuid);
         }
 
         // Run direct JPQL to group by month name and type
@@ -179,7 +210,7 @@ public class ReportController {
                       "ORDER BY month DESC";
 
         List<Object[]> rawData = entityManager.createQuery(jpql)
-                .setParameter("userId", userId)
+                .setParameter("userId", userUuid)
                 .setMaxResults(24) // limit to past 2 years of trends
                 .getResultList();
 
@@ -202,24 +233,25 @@ public class ReportController {
             trendList.add(trendItem);
         }
 
-        log.info("Monthly income/expense trends generated successfully with {} months for user ID: {}", trendList.size(), userId);
+        log.info("Monthly income/expense trends generated successfully with {} months for user ID: {}", trendList.size(), userUuid);
         return ResponseEntity.ok(ApiResponse.success(trendList));
     }
 
     @GetMapping("/rewards-summary")
     @Operation(summary = "Get summary of reward statistics")
     @SuppressWarnings("unchecked")
-    public ResponseEntity<ApiResponse<Map<String, Object>>> getRewardsSummary(@RequestParam UUID userId) {
-        log.info("Generating rewards summary for user ID: {}", userId);
-        if (!userRepository.existsById(userId)) {
-            throw new ResourceNotFoundException("User not found with id: " + userId);
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getRewardsSummary(@RequestParam String userId) {
+        UUID userUuid = parseUserId(userId);
+        log.info("Generating rewards summary for user ID: {}", userUuid);
+        if (!userRepository.existsById(userUuid)) {
+            throw new ResourceNotFoundException("User not found with id: " + userUuid);
         }
 
         String jpql = "SELECT r.status, COUNT(r), SUM(r.amount) FROM Reward r " +
                       "WHERE r.user.userId = :userId GROUP BY r.status";
 
         List<Object[]> rawData = entityManager.createQuery(jpql)
-                .setParameter("userId", userId)
+                .setParameter("userId", userUuid)
                 .getResultList();
 
         Map<String, Object> summary = new HashMap<>();
@@ -242,7 +274,7 @@ public class ReportController {
         summary.put("totalEarnedAmount", totalEarnedAmount);
         summary.put("breakdown", breakdown);
 
-        log.info("Rewards summary generated successfully for user ID: {}", userId);
+        log.info("Rewards summary generated successfully for user ID: {}", userUuid);
         return ResponseEntity.ok(ApiResponse.success(summary));
     }
 }

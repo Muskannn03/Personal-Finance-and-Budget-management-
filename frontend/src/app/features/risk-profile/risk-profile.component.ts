@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../core/services/auth.service';
 import { RiskProfileService } from '../../core/services/risk-profile.service';
@@ -20,14 +20,11 @@ interface Question {
         <div class="text-left">
           <div class="flex items-center gap-3">
             <h1 class="text-3xl font-extrabold tracking-tight text-text-main">Financial Risk Profiling</h1>
-            <span *ngIf="isDemoMode" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary-light text-brand-primary-dark border border-brand-primary/30">
-              Demo Values Active
-            </span>
           </div>
           <p class="text-text-sub text-sm mt-1">Assess your investment risk tolerance to optimize asset allocations.</p>
         </div>
 
-        <!-- Controls: Demo Toggle & Guide Pills -->
+        <!-- Controls: Guide Pill -->
         <div class="flex items-center gap-2">
           <button 
             (click)="toggleGuide()" 
@@ -37,29 +34,33 @@ interface Question {
             <span>💡</span>
             <span>{{ showGuide ? 'Hide Guide' : 'What is Where?' }}</span>
           </button>
-
-          <div class="flex items-center bg-white border border-brand-border rounded-2xl p-1 shadow-sm">
-            <button 
-              (click)="setMode(true)" 
-              class="text-xs font-semibold px-3 py-1 rounded-xl transition-all duration-150"
-              [ngClass]="isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Sample
-            </button>
-            <button 
-              (click)="setMode(false)" 
-              class="text-xs font-semibold px-3 py-1 rounded-xl transition-all duration-150"
-              [ngClass]="!isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Live
-            </button>
-          </div>
         </div>
       </div>
 
       <!-- State: Loading -->
       <div *ngIf="loading" class="p-12 text-center text-xs text-text-sub">
         Analyzing your financial profile...
+      </div>
+
+      <!-- State: No Profile Yet -->
+      <div *ngIf="!loading && !currentProfile && !takingTest" class="bg-white border border-brand-border p-12 rounded-2xl shadow-sm text-center space-y-4">
+        <div class="w-16 h-16 mx-auto rounded-full bg-brand-primary-light text-brand-primary flex items-center justify-center text-3xl shadow-sm border border-brand-border">
+          🛡️
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-text-main">No Risk Profile Assessed Yet</h2>
+          <p class="text-xs text-text-sub mt-1 max-w-md mx-auto">
+            Take a quick 3-question assessment to understand your financial risk tolerance and receive customized asset allocation guidance.
+          </p>
+        </div>
+        <div>
+          <button 
+            (click)="startQuiz()" 
+            class="px-6 py-2.5 bg-brand-primary hover:bg-brand-primary-dark text-white rounded-xl text-xs font-bold transition-all shadow-sm focus:outline-none"
+          >
+            Start Risk Assessment
+          </button>
+        </div>
       </div>
 
       <!-- State: Profile Exists -->
@@ -109,7 +110,7 @@ interface Question {
       </div>
 
       <!-- State: Taking Assessment Quiz -->
-      <div *ngIf="!loading && takingTest" class="bg-white border border-brand-border p-8 rounded-2xl shadow-sm space-y-6">
+      <div *ngIf="!loading && takingTest && questions[currentQuestionIndex]" class="bg-white border border-brand-border p-8 rounded-2xl shadow-sm space-y-6">
         <div class="flex justify-between items-center border-b border-brand-border pb-4">
           <span class="text-xs font-bold text-text-sub uppercase tracking-wider">
             Question {{ currentQuestionIndex + 1 }} of {{ questions.length }}
@@ -119,12 +120,12 @@ interface Question {
 
         <div class="space-y-4">
           <h3 class="text-base font-bold text-text-main leading-snug">
-            {{ questions[currentQuestionIndex].text }}
+            {{ questions[currentQuestionIndex]?.text }}
           </h3>
 
           <div class="space-y-2.5">
             <button 
-              *ngFor="let opt of questions[currentQuestionIndex].options"
+              *ngFor="let opt of questions[currentQuestionIndex]?.options"
               (click)="selectOption(opt.score)"
               class="w-full p-4 rounded-xl border border-brand-border hover:border-brand-primary hover:bg-brand-bg text-left text-xs font-medium transition-all duration-150 flex items-center justify-between"
             >
@@ -140,9 +141,9 @@ interface Question {
 export class RiskProfileComponent implements OnInit {
   private authService = inject(AuthService);
   private riskProfileService = inject(RiskProfileService);
+  private cdr = inject(ChangeDetectorRef);
 
-  loading = false;
-  isDemoMode = true;
+  loading = true;
   showGuide = true;
 
   currentProfile: any = null;
@@ -150,12 +151,6 @@ export class RiskProfileComponent implements OnInit {
   currentQuestionIndex = 0;
   accumulatedScore = 0;
   userId = '';
-
-  readonly demoProfile = {
-    profileId: 'demo-rp-1',
-    profileType: 'MODERATE_GROWTH',
-    riskScore: 68
-  };
 
   questions: Question[] = [
     {
@@ -191,49 +186,44 @@ export class RiskProfileComponent implements OnInit {
   ];
 
   ngOnInit() {
-    const session = this.authService.currentUser();
-    this.userId = session ? session.userId : 'demo-user-id';
-
-    this.applyDemoData();
-
-    if (session) {
+    this.userId = this.authService.getUserId();
+    if (this.userId) {
       this.loadProfile();
+    } else {
+      this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 
   toggleGuide() {
     this.showGuide = !this.showGuide;
-  }
-
-  setMode(demo: boolean) {
-    this.isDemoMode = demo;
-    if (demo) {
-      this.applyDemoData();
-    } else {
-      this.applyLiveData();
-    }
-  }
-
-  private applyDemoData() {
-    this.currentProfile = { ...this.demoProfile };
-    this.loading = false;
-  }
-
-  private applyLiveData() {
-    this.currentProfile = null;
-    this.loadProfile();
+    this.cdr.markForCheck();
   }
 
   loadProfile() {
+    if (!this.userId) {
+      this.currentProfile = null;
+      this.loading = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.loading = true;
+    this.cdr.markForCheck();
     this.riskProfileService.getRiskProfile(this.userId).subscribe({
       next: (res: any) => {
+        this.loading = false;
         if (res && res.data) {
-          if (!this.isDemoMode) {
-            this.currentProfile = res.data;
-          }
+          this.currentProfile = res.data;
+        } else {
+          this.currentProfile = null;
         }
+        this.cdr.markForCheck();
       },
-      error: (err: any) => console.warn('Could not load live profile', err)
+      error: (err: any) => {
+        this.loading = false;
+        console.warn('Could not load live profile', err);
+        this.cdr.markForCheck();
+      }
     });
   }
 
@@ -267,10 +257,12 @@ export class RiskProfileComponent implements OnInit {
     this.currentQuestionIndex = 0;
     this.accumulatedScore = 0;
     this.takingTest = true;
+    this.cdr.markForCheck();
   }
 
   cancelQuiz() {
     this.takingTest = false;
+    this.cdr.markForCheck();
   }
 
   selectOption(score: number) {
@@ -279,6 +271,8 @@ export class RiskProfileComponent implements OnInit {
 
     if (this.currentQuestionIndex >= this.questions.length) {
       this.finishQuiz();
+    } else {
+      this.cdr.markForCheck();
     }
   }
 
@@ -286,15 +280,6 @@ export class RiskProfileComponent implements OnInit {
     let profileType = 'MODERATE';
     if (this.accumulatedScore <= 35) profileType = 'CONSERVATIVE';
     else if (this.accumulatedScore >= 80) profileType = 'AGGRESSIVE';
-
-    if (this.isDemoMode) {
-      this.currentProfile = {
-        profileType: profileType,
-        riskScore: Math.min(100, Math.round((this.accumulatedScore / 105) * 100))
-      };
-      this.takingTest = false;
-      return;
-    }
 
     const payload = {
       userId: this.userId,
@@ -306,10 +291,12 @@ export class RiskProfileComponent implements OnInit {
       next: (res: any) => {
         this.currentProfile = res.data;
         this.takingTest = false;
+        this.cdr.markForCheck();
       },
       error: (err: any) => {
         alert(err?.error?.message || 'Failed to calculate risk profile.');
         this.takingTest = false;
+        this.cdr.markForCheck();
       }
     });
   }

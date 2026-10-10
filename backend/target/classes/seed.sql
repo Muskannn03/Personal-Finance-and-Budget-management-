@@ -5,10 +5,10 @@
 -- Clear existing data (handled by CASCADE in schema.sql, but safe here)
 TRUNCATE TABLE risk_profiles, reminders, rewards, investments, goals, budgets, transactions, categories, accounts, users CASCADE;
 
--- 1. Seed Users (passwords are dummy bcrypt hashes for 'Password@123')
+-- 1. Seed Users (passwords are bcrypt hashes for 'Password@123')
 INSERT INTO users (user_id, name, email, password_hash, currency_preference, role, created_by, updated_by) VALUES
-('e3952bb0-b74a-4d7a-8f5b-1662fb1655b3', 'Muskan Kapri', 'kaprimuskan6@gmail.com', '$2a$10$8v5x0n0D6R.h9T5w9s0q/.Yh6pQ6t.qRkXb11pYt8gJ7Y.n6H0bXy', 'INR', 'ADMIN', 'SEED_SYSTEM', 'SEED_SYSTEM'),
-('a123bc45-d67e-8f90-1234-56789abcdef0', 'John Doe', 'john.doe@example.com', '$2a$10$8v5x0n0D6R.h9T5w9s0q/.Yh6pQ6t.qRkXb11pYt8gJ7Y.n6H0bXy', 'USD', 'USER', 'SEED_SYSTEM', 'SEED_SYSTEM');
+('e3952bb0-b74a-4d7a-8f5b-1662fb1655b3', 'Muskan Kapri', 'kaprimuskan6@gmail.com', '$2a$10$mPTQNU.8FC.u9eKGwiziZ.wLPdyWWPtCmP0NWKAPdxyX00IUjRUOq', 'INR', 'ADMIN', 'SEED_SYSTEM', 'SEED_SYSTEM'),
+('a123bc45-d67e-8f90-1234-56789abcdef0', 'John Doe', 'john.doe@example.com', '$2a$10$mPTQNU.8FC.u9eKGwiziZ.wLPdyWWPtCmP0NWKAPdxyX00IUjRUOq', 'USD', 'USER', 'SEED_SYSTEM', 'SEED_SYSTEM');
 
 -- 2. Seed Accounts (balances start at 0.00, will be updated by transaction triggers)
 INSERT INTO accounts (account_id, user_id, account_name, account_type, balance, created_by, updated_by) VALUES

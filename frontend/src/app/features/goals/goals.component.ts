@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -16,14 +16,11 @@ import { InvestmentService } from '../../core/services/investment.service';
         <div>
           <div class="flex items-center gap-3">
             <h1 class="text-3xl font-extrabold tracking-tight text-text-main">Savings Goals</h1>
-            <span *ngIf="isDemoMode" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary-light text-brand-primary-dark border border-brand-primary/30">
-              Demo Values Active
-            </span>
           </div>
           <p class="text-text-sub text-sm mt-1">Set milestones for things you want to purchase or save for.</p>
         </div>
 
-        <!-- Controls: Demo Toggle & Guide Pills -->
+        <!-- Controls: Guide Pill & Create Goal -->
         <div class="flex flex-wrap items-center gap-2">
           <button 
             (click)="toggleGuide()" 
@@ -33,23 +30,6 @@ import { InvestmentService } from '../../core/services/investment.service';
             <span>💡</span>
             <span>{{ showGuide ? 'Hide Guide' : 'What is Where?' }}</span>
           </button>
-
-          <div class="flex items-center bg-white border border-brand-border rounded-2xl p-1 shadow-sm">
-            <button 
-              (click)="setMode(true)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Sample Data
-            </button>
-            <button 
-              (click)="setMode(false)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="!isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Live Data
-            </button>
-          </div>
 
           <button 
             (click)="openAddModal()" 
@@ -86,7 +66,7 @@ import { InvestmentService } from '../../core/services/investment.service';
             📍 Overall Completion Rate
           </div>
           <span class="text-[10px] font-bold text-text-sub uppercase tracking-wider">Overall Completion</span>
-          <h3 class="text-2xl font-black mt-1 text-purple-700">{{ (totalSavedAmount / totalTargetAmount * 100) | number:'1.0-0' }}%</h3>
+          <h3 class="text-2xl font-black mt-1 text-purple-700">{{ totalTargetAmount > 0 ? ((totalSavedAmount / totalTargetAmount * 100) | number:'1.0-0') : '0' }}%</h3>
         </div>
       </div>
 
@@ -294,14 +274,14 @@ export class GoalsComponent implements OnInit {
   private authService = inject(AuthService);
   private goalService = inject(GoalService);
   private investmentService = inject(InvestmentService);
+  private cdr = inject(ChangeDetectorRef);
 
   goals: any[] = [];
-  loading = false;
-  isDemoMode = true;
+  loading = true;
   showGuide = true;
 
-  totalTargetAmount = 260000;
-  totalSavedAmount = 181500;
+  totalTargetAmount = 0;
+  totalSavedAmount = 0;
 
   showModal = false;
   showAddMoneyModal = false;
@@ -309,45 +289,6 @@ export class GoalsComponent implements OnInit {
   selectedGoal: any = null;
   formSubmitting = false;
   userId = '';
-
-  liveGoals: any[] = [];
-  liveTotalTargetAmount = 0;
-  liveTotalSavedAmount = 0;
-
-  readonly demoGoals = [
-    {
-      goalId: 'dg-1',
-      goalName: 'Emergency Fund (6 Months Cushion)',
-      targetAmount: 100000,
-      currentAmount: 75000,
-      targetDate: '2026-12-31',
-      status: 'IN_PROGRESS'
-    },
-    {
-      goalId: 'dg-2',
-      goalName: 'Apple MacBook Pro M3 Max',
-      targetAmount: 90000,
-      currentAmount: 58000,
-      targetDate: '2026-11-30',
-      status: 'IN_PROGRESS'
-    },
-    {
-      goalId: 'dg-3',
-      goalName: 'Goa Winter Vacation Trip',
-      targetAmount: 35000,
-      currentAmount: 24500,
-      targetDate: '2027-01-15',
-      status: 'IN_PROGRESS'
-    },
-    {
-      goalId: 'dg-4',
-      goalName: 'iPhone 16 Pro Upgrade Fund',
-      targetAmount: 35000,
-      currentAmount: 35000,
-      targetDate: '2026-08-15',
-      status: 'ACHIEVED'
-    }
-  ];
 
   goalForm: FormGroup = this.fb.group({
     goalName: ['', [Validators.required]],
@@ -361,40 +302,18 @@ export class GoalsComponent implements OnInit {
   });
 
   ngOnInit() {
-    const session = this.authService.currentUser();
-    this.userId = session ? session.userId : 'demo-user-id';
-
-    this.applyDemoData();
-
-    if (session) {
+    this.userId = this.authService.getUserId();
+    if (this.userId) {
       this.loadGoals();
+    } else {
+      this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 
   toggleGuide() {
     this.showGuide = !this.showGuide;
-  }
-
-  setMode(demo: boolean) {
-    this.isDemoMode = demo;
-    if (demo) {
-      this.applyDemoData();
-    } else {
-      this.applyLiveData();
-    }
-  }
-
-  private applyDemoData() {
-    this.goals = [...this.demoGoals];
-    this.recalculateTotals();
-    this.loading = false;
-  }
-
-  private applyLiveData() {
-    this.goals = [...this.liveGoals];
-    this.totalTargetAmount = this.liveTotalTargetAmount;
-    this.totalSavedAmount = this.liveTotalSavedAmount;
-    this.loading = false;
+    this.cdr.markForCheck();
   }
 
   private recalculateTotals() {
@@ -407,22 +326,36 @@ export class GoalsComponent implements OnInit {
   }
 
   loadGoals() {
+    if (!this.userId) {
+      this.goals = [];
+      this.totalTargetAmount = 0;
+      this.totalSavedAmount = 0;
+      this.loading = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.loading = true;
+    this.cdr.markForCheck();
+
     this.goalService.getGoals(this.userId).subscribe({
       next: (res: any) => {
+        this.loading = false;
         if (res && res.data) {
-          this.liveGoals = res.data;
-          this.liveTotalTargetAmount = 0;
-          this.liveTotalSavedAmount = 0;
-          this.liveGoals.forEach(g => {
-            this.liveTotalTargetAmount += g.targetAmount || 0;
-            this.liveTotalSavedAmount += g.currentAmount || 0;
-          });
-          if (!this.isDemoMode) {
-            this.applyLiveData();
-          }
+          this.goals = res.data;
+          this.recalculateTotals();
+        } else {
+          this.goals = [];
+          this.totalTargetAmount = 0;
+          this.totalSavedAmount = 0;
         }
+        this.cdr.markForCheck();
       },
-      error: (err) => console.warn('Could not load live goals', err)
+      error: (err) => {
+        this.loading = false;
+        this.goals = [];
+        this.cdr.markForCheck();
+        console.warn('Could not load live goals', err);
+      }
     });
   }
 
@@ -479,23 +412,6 @@ export class GoalsComponent implements OnInit {
     this.formSubmitting = true;
     const formVal = this.goalForm.value;
 
-    if (this.isDemoMode) {
-      const target = parseFloat(formVal.targetAmount);
-      const newG = {
-        goalId: 'dg-' + Date.now(),
-        goalName: formVal.goalName,
-        targetAmount: target,
-        currentAmount: 0,
-        targetDate: formVal.targetDate,
-        status: 'IN_PROGRESS'
-      };
-      this.goals.push(newG);
-      this.recalculateTotals();
-      this.formSubmitting = false;
-      this.closeModal();
-      return;
-    }
-
     const payload = {
       ...formVal,
       userId: this.userId
@@ -535,17 +451,6 @@ export class GoalsComponent implements OnInit {
     const formVal = this.addMoneyForm.value;
     const amount = parseFloat(formVal.amount);
 
-    if (this.isDemoMode) {
-      this.selectedGoal.currentAmount += amount;
-      if (this.selectedGoal.currentAmount >= this.selectedGoal.targetAmount) {
-        this.selectedGoal.status = 'ACHIEVED';
-      }
-      this.recalculateTotals();
-      this.formSubmitting = false;
-      this.closeAddMoneyModal();
-      return;
-    }
-
     const payload = {
       goalId: this.selectedGoal.goalId,
       userId: this.userId,
@@ -571,11 +476,6 @@ export class GoalsComponent implements OnInit {
 
   deleteGoal(id: string) {
     if (confirm('Are you sure you want to delete this savings goal?')) {
-      if (this.isDemoMode) {
-        this.goals = this.goals.filter(g => g.goalId !== id);
-        this.recalculateTotals();
-        return;
-      }
       this.goalService.deleteGoal(id).subscribe({
         next: () => this.loadGoals(),
         error: (err) => alert(err?.error?.message || 'Failed to delete goal.')

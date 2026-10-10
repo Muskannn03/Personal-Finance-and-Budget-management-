@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -18,14 +18,11 @@ import { TransactionService } from '../../core/services/transaction.service';
             <h1 class="text-3xl font-extrabold tracking-tight text-text-main">
               Good morning, {{ userName }} 👋
             </h1>
-            <span *ngIf="isDemoMode" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary-light text-brand-primary-dark border border-brand-primary/30">
-              Demo Values Active
-            </span>
           </div>
           <p class="text-text-sub text-sm mt-1">Here is your financial overview for this month.</p>
         </div>
 
-        <!-- Controls: Demo Toggle & Guide Pills -->
+        <!-- Controls -->
         <div class="flex flex-wrap items-center gap-2">
           <!-- Guide / Tour Highlighter Button -->
           <button 
@@ -37,23 +34,10 @@ import { TransactionService } from '../../core/services/transaction.service';
             <span>{{ showGuide ? 'Hide Layout Guide' : 'What is Where? (Guide)' }}</span>
           </button>
 
-          <!-- Toggle Demo / Live Mode -->
-          <div class="flex items-center bg-white border border-brand-border rounded-2xl p-1 shadow-sm">
-            <button 
-              (click)="setMode(true)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Sample Data
-            </button>
-            <button 
-              (click)="setMode(false)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="!isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Live Data
-            </button>
-          </div>
+          <span *ngIf="loading" class="text-xs font-semibold px-3 py-1.5 bg-brand-primary-light text-brand-primary-dark border border-brand-primary/30 rounded-2xl flex items-center gap-1.5 animate-pulse">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-primary"></span>
+            Syncing...
+          </span>
 
           <span class="text-xs font-semibold px-4 py-2 bg-white border border-brand-border rounded-2xl shadow-sm text-text-sub hidden sm:inline-block">
             {{ currentDate }}
@@ -80,13 +64,8 @@ import { TransactionService } from '../../core/services/transaction.service';
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div *ngIf="loading" class="grid grid-cols-1 md:grid-cols-4 gap-6 animate-pulse">
-        <div class="h-28 bg-white border border-brand-border rounded-2xl" *ngFor="let i of [1, 2, 3, 4]"></div>
-      </div>
-
       <!-- Dashboard Cards Grid (Top 4 KPIs) -->
-      <div *ngIf="!loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         
         <!-- Card 1: Total Balance / Net Worth -->
         <div class="bg-white border border-brand-border p-6 rounded-2xl shadow-sm flex flex-col justify-between hover:shadow transition-shadow duration-200 relative overflow-hidden">
@@ -185,61 +164,184 @@ import { TransactionService } from '../../core/services/transaction.service';
       </div>
 
       <!-- Main Visual Grid: Charts & Details -->
-      <div *ngIf="!loading" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Left 2 Cols: Main Chart and Recent Transactions -->
         <div class="lg:col-span-2 space-y-8">
           
           <!-- Income vs Expense Visualizer -->
-          <div class="bg-white border border-brand-border p-6 rounded-2xl shadow-sm relative">
-            <div *ngIf="showGuide" class="mb-3 inline-flex items-center gap-1 text-[10px] font-bold text-brand-primary-dark bg-brand-primary-light px-2.5 py-0.5 rounded-md">
+          <div class="bg-white border border-brand-border p-6 rounded-2xl shadow-sm relative space-y-6">
+            <div *ngIf="showGuide" class="inline-flex items-center gap-1 text-[10px] font-bold text-brand-primary-dark bg-brand-primary-light px-2.5 py-0.5 rounded-md">
               📍 Money Flow Graph: Visual comparison of monthly Inflow vs Outflow vs Savings
             </div>
-            <div class="flex justify-between items-center mb-4">
+
+            <!-- Card Header & Legend -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 class="text-base font-bold">Monthly Money Flow</h3>
-                <p class="text-xs text-text-sub">Visual summary of your monthly spending vs earnings</p>
+                <div class="flex items-center gap-2">
+                  <h3 class="text-base font-bold text-text-main">Monthly Money Flow</h3>
+                  <span class="text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full"
+                        [ngClass]="getSavingsShare() >= 50 
+                          ? 'bg-brand-primary-light text-brand-primary-dark border border-brand-primary/40' 
+                          : (getSavingsShare() >= 20 ? 'bg-[#FDE2E4] text-[#D96F88] border border-[#F8DDE4]' : 'bg-[#FDF2F0] text-[#E76F51] border border-[#F8C8BE]')">
+                    {{ getFlowHealthLabel() }}
+                  </span>
+                </div>
+                <p class="text-xs text-text-sub mt-0.5">Visual summary of your monthly spending vs earnings</p>
               </div>
-              <div class="flex items-center gap-4 text-xs font-semibold">
+
+              <!-- Legend -->
+              <div class="flex items-center gap-3 text-xs font-semibold">
                 <span class="flex items-center gap-1.5 text-text-sub">
-                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span> Income
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#8FB9A8] shadow-xs"></span> Income
                 </span>
                 <span class="flex items-center gap-1.5 text-text-sub">
-                  <span class="w-2.5 h-2.5 rounded-full bg-orange-400"></span> Expenses
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#E76F51] shadow-xs"></span> Expenses
                 </span>
                 <span class="flex items-center gap-1.5 text-text-sub">
-                  <span class="w-2.5 h-2.5 rounded-full bg-purple-400"></span> Savings
+                  <span class="w-2.5 h-2.5 rounded-full bg-brand-primary shadow-xs"></span> Savings
                 </span>
               </div>
             </div>
 
-            <!-- Custom Clean Responsive Bar Chart -->
-            <div class="h-64 flex flex-col justify-between pt-4">
-              <div class="flex-grow flex items-end justify-around relative px-6">
-                <!-- Guide lines -->
-                <div class="absolute inset-x-0 bottom-0 border-b border-brand-border opacity-50"></div>
-                <div class="absolute inset-x-0 bottom-1/3 border-b border-brand-border opacity-25"></div>
-                <div class="absolute inset-x-0 bottom-2/3 border-b border-brand-border opacity-25"></div>
+            <!-- Modern Bar Chart Display Area (Theme Background & Borders) -->
+            <div class="relative bg-brand-bg rounded-2xl p-6 border border-brand-border">
+              <!-- Y-Axis Grid Reference Lines -->
+              <div class="absolute inset-x-6 top-8 border-b border-dashed border-brand-border flex justify-between items-center text-[10px] text-text-sub font-medium pointer-events-none">
+                <span>Peak Flow</span>
+                <span>₹{{ getMaxFlow() | number:'1.0-0' }}</span>
+              </div>
+              <div class="absolute inset-x-6 top-1/2 border-b border-dashed border-brand-border flex justify-between items-center text-[10px] text-text-sub font-medium pointer-events-none">
+                <span>50%</span>
+                <span>₹{{ (getMaxFlow() / 2) | number:'1.0-0' }}</span>
+              </div>
+              <div class="absolute inset-x-6 bottom-20 border-b border-brand-border pointer-events-none"></div>
+
+              <!-- Bar Columns Area (Fixed Height Track) -->
+              <div class="h-60 flex items-end justify-around relative pt-8 pb-3 z-10">
                 
-                <!-- Dynamic Bar Chart elements -->
-                <div class="flex flex-col items-center gap-2 w-24 group">
-                  <div class="w-20 bg-emerald-100 border border-emerald-300 rounded-2xl relative flex items-end justify-center transition-all duration-500 ease-out group-hover:bg-emerald-200" [style.height.%]="getPercentage(monthlyIncome)">
-                    <span class="text-[11px] font-bold text-emerald-800 mb-2">₹{{ monthlyIncome | number:'1.0-0' }}</span>
+                <!-- Income Column -->
+                <div class="flex flex-col items-center gap-2 group w-24 sm:w-28">
+                  <!-- Value Badge Above Bar -->
+                  <div class="transition-transform duration-300 group-hover:-translate-y-1">
+                    <span class="text-[11px] font-black text-[#4F7A6A] bg-white border border-[#C5DDD3] px-2.5 py-1 rounded-xl shadow-xs whitespace-nowrap">
+                      ₹{{ monthlyIncome | number:'1.0-0' }}
+                    </span>
                   </div>
-                  <span class="text-xs font-bold text-text-main">Income</span>
+
+                  <!-- Fixed Height Track (h-40) -->
+                  <div class="w-16 sm:w-20 h-40 bg-white rounded-2xl p-1.5 flex items-end justify-center shadow-inner border border-brand-border group-hover:border-[#8FB9A8] group-hover:shadow-md transition-all">
+                    <div 
+                      class="w-full rounded-xl bg-gradient-to-t from-[#6EA490] via-[#8FB9A8] to-[#A8CEBF] shadow-sm shadow-[#8FB9A8]/30 transition-all duration-700 ease-out relative overflow-hidden group-hover:brightness-105"
+                      [style.height.%]="getBarHeight(monthlyIncome)"
+                    >
+                      <div class="absolute top-1 inset-x-1 h-1 bg-white/40 rounded-full"></div>
+                    </div>
+                  </div>
+
+                  <!-- Bottom Label -->
+                  <div class="text-center">
+                    <span class="text-xs font-bold text-text-main flex items-center justify-center gap-1">
+                      <span class="w-2 h-2 rounded-full bg-[#8FB9A8]"></span> Income
+                    </span>
+                    <span class="text-[10px] font-semibold text-[#4F7A6A]">100% Inflow</span>
+                  </div>
                 </div>
 
-                <div class="flex flex-col items-center gap-2 w-24 group">
-                  <div class="w-20 bg-orange-100 border border-orange-300 rounded-2xl relative flex items-end justify-center transition-all duration-500 ease-out group-hover:bg-orange-200" [style.height.%]="getPercentage(monthlyExpense)">
-                    <span class="text-[11px] font-bold text-orange-700 mb-2">₹{{ monthlyExpense | number:'1.0-0' }}</span>
+                <!-- Expenses Column -->
+                <div class="flex flex-col items-center gap-2 group w-24 sm:w-28">
+                  <!-- Value Badge Above Bar -->
+                  <div class="transition-transform duration-300 group-hover:-translate-y-1">
+                    <span class="text-[11px] font-black text-[#C64A2F] bg-white border border-[#F8C8BE] px-2.5 py-1 rounded-xl shadow-xs whitespace-nowrap">
+                      ₹{{ monthlyExpense | number:'1.0-0' }}
+                    </span>
                   </div>
-                  <span class="text-xs font-bold text-text-main">Expenses</span>
+
+                  <!-- Fixed Height Track (h-40) -->
+                  <div class="w-16 sm:w-20 h-40 bg-white rounded-2xl p-1.5 flex items-end justify-center shadow-inner border border-brand-border group-hover:border-[#E76F51] group-hover:shadow-md transition-all">
+                    <div 
+                      class="w-full rounded-xl bg-gradient-to-t from-[#D6593B] via-[#E76F51] to-[#F2947D] shadow-sm shadow-[#E76F51]/30 transition-all duration-700 ease-out relative overflow-hidden group-hover:brightness-105"
+                      [style.height.%]="getBarHeight(monthlyExpense)"
+                    >
+                      <div class="absolute top-1 inset-x-1 h-1 bg-white/40 rounded-full"></div>
+                    </div>
+                  </div>
+
+                  <!-- Bottom Label -->
+                  <div class="text-center">
+                    <span class="text-xs font-bold text-text-main flex items-center justify-center gap-1">
+                      <span class="w-2 h-2 rounded-full bg-[#E76F51]"></span> Expenses
+                    </span>
+                    <span class="text-[10px] font-semibold text-[#C64A2F]">{{ getExpenseShare() | number:'1.1-1' }}% Spent</span>
+                  </div>
                 </div>
 
-                <div class="flex flex-col items-center gap-2 w-24 group">
-                  <div class="w-20 bg-purple-100 border border-purple-300 rounded-2xl relative flex items-end justify-center transition-all duration-500 ease-out group-hover:bg-purple-200" [style.height.%]="getPercentage(monthlyIncome - monthlyExpense)">
-                    <span class="text-[11px] font-bold text-purple-700 mb-2">₹{{ (monthlyIncome - monthlyExpense) | number:'1.0-0' }}</span>
+                <!-- Savings Column (Signature Brand Palette) -->
+                <div class="flex flex-col items-center gap-2 group w-24 sm:w-28">
+                  <!-- Value Badge Above Bar -->
+                  <div class="transition-transform duration-300 group-hover:-translate-y-1">
+                    <span class="text-[11px] font-black text-brand-primary-dark bg-white border border-brand-primary/50 px-2.5 py-1 rounded-xl shadow-xs whitespace-nowrap">
+                      ₹{{ getNetSavings() | number:'1.0-0' }}
+                    </span>
                   </div>
-                  <span class="text-xs font-bold text-text-main">Savings</span>
+
+                  <!-- Fixed Height Track (h-40) -->
+                  <div class="w-16 sm:w-20 h-40 bg-white rounded-2xl p-1.5 flex items-end justify-center shadow-inner border border-brand-border group-hover:border-brand-primary group-hover:shadow-md transition-all">
+                    <div 
+                      class="w-full rounded-xl bg-gradient-to-t from-brand-primary-dark via-brand-primary to-brand-primary-light shadow-sm shadow-brand-primary/40 transition-all duration-700 ease-out relative overflow-hidden group-hover:brightness-105"
+                      [style.height.%]="getBarHeight(getNetSavings())"
+                    >
+                      <div class="absolute top-1 inset-x-1 h-1 bg-white/40 rounded-full"></div>
+                    </div>
+                  </div>
+
+                  <!-- Bottom Label -->
+                  <div class="text-center">
+                    <span class="text-xs font-bold text-text-main flex items-center justify-center gap-1">
+                      <span class="w-2 h-2 rounded-full bg-brand-primary"></span> Savings
+                    </span>
+                    <span class="text-[10px] font-semibold text-brand-primary-dark">{{ getSavingsShare() | number:'1.1-1' }}% Retained</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- Flow Composition & Insights Bar -->
+            <div class="p-4 rounded-xl bg-brand-bg border border-brand-border space-y-3">
+              <div class="flex justify-between items-center text-xs">
+                <span class="font-bold text-text-main">Monthly Retention Split</span>
+                <span class="font-semibold text-text-sub">
+                  Savings Rate: <strong class="text-brand-primary-dark font-extrabold">{{ getSavingsShare() | number:'1.1-1' }}%</strong>
+                </span>
+              </div>
+
+              <!-- Composite Horizontal Ratio Bar -->
+              <div class="w-full h-3 bg-[#EFE6E8] rounded-full overflow-hidden flex shadow-inner">
+                <div 
+                  class="bg-gradient-to-r from-brand-primary-dark to-brand-primary h-full transition-all duration-500" 
+                  [style.width.%]="getSavingsShare()"
+                  [title]="'Savings: ' + (getSavingsShare() | number:'1.1-1') + '%'"
+                ></div>
+                <div 
+                  class="bg-gradient-to-r from-[#D6593B] to-[#E76F51] h-full transition-all duration-500" 
+                  [style.width.%]="getExpenseShare()"
+                  [title]="'Expenses: ' + (getExpenseShare() | number:'1.1-1') + '%'"
+                ></div>
+              </div>
+
+              <!-- Quick Metric Badges -->
+              <div class="grid grid-cols-3 gap-2 pt-1 text-center">
+                <div class="bg-white p-2.5 rounded-lg border border-brand-border shadow-xs">
+                  <span class="text-[10px] text-text-sub uppercase font-bold block">Gross Inflow</span>
+                  <span class="text-xs font-extrabold text-[#4F7A6A]">₹{{ monthlyIncome | number:'1.0-0' }}</span>
+                </div>
+                <div class="bg-white p-2.5 rounded-lg border border-brand-border shadow-xs">
+                  <span class="text-[10px] text-text-sub uppercase font-bold block">Burn Rate</span>
+                  <span class="text-xs font-extrabold text-[#C64A2F]">{{ getExpenseShare() | number:'1.1-1' }}%</span>
+                </div>
+                <div class="bg-brand-primary-light/40 p-2.5 rounded-lg border border-brand-primary/30 shadow-xs">
+                  <span class="text-[10px] text-brand-primary-dark uppercase font-bold block">Net Retained</span>
+                  <span class="text-xs font-black text-brand-primary-dark">+₹{{ getNetSavings() | number:'1.0-0' }}</span>
                 </div>
               </div>
             </div>
@@ -417,97 +519,25 @@ export class DashboardComponent implements OnInit {
   private authService = inject(AuthService);
   private reportService = inject(ReportService);
   private transactionService = inject(TransactionService);
+  private cdr = inject(ChangeDetectorRef);
 
-  userName = 'Muskan Kapri';
+  userName = 'User';
   currentDate = '';
   loading = false;
-  isDemoMode = true;
-  showGuide = true;
+  showGuide = false;
 
-  // Active view model
-  netWorth = 142850;
-  monthlyIncome = 85000;
-  monthlyExpense = 34250;
+  // Active view model defaults to 0 and empty lists
+  netWorth = 0;
+  monthlyIncome = 0;
+  monthlyExpense = 0;
   accounts: any[] = [];
   goals: any[] = [];
   recentTransactions: any[] = [];
 
-  // Live real data cache from backend
-  liveNetWorth = 0;
-  liveMonthlyIncome = 0;
-  liveMonthlyExpense = 0;
-  liveAccounts: any[] = [];
-  liveGoals: any[] = [];
-  liveRecentTransactions: any[] = [];
-
-  // Rich, realistic demo dummy dataset
-  readonly demoData = {
-    netWorth: 142850,
-    monthlyIncome: 85000,
-    monthlyExpense: 34250,
-    accounts: [
-      { accountId: 'demo-1', accountName: 'HDFC Salary Account', accountType: 'SAVINGS', balance: 82450.00 },
-      { accountId: 'demo-2', accountName: 'ICICI Coral Platinum Card', accountType: 'CREDIT_CARD', balance: -11400.00 },
-      { accountId: 'demo-3', accountName: 'Groww Mutual Funds & SIP', accountType: 'INVESTMENT', balance: 65500.00 },
-      { accountId: 'demo-4', accountName: 'Physical Cash & Wallet', accountType: 'CASH', balance: 6300.00 }
-    ],
-    goals: [
-      { goalId: 'demo-g1', goalName: 'Emergency Fund (6 Months)', currentAmount: 75000, targetAmount: 100000, targetDate: '2026-12-31' },
-      { goalId: 'demo-g2', goalName: 'Apple MacBook Pro M3', currentAmount: 58000, targetAmount: 90000, targetDate: '2026-11-30' },
-      { goalId: 'demo-g3', goalName: 'Goa Winter Vacation Trip', currentAmount: 24500, targetAmount: 35000, targetDate: '2027-01-15' }
-    ],
-    recentTransactions: [
-      { 
-        transactionId: 'demo-t1', 
-        description: 'TechCorp Solutions - Monthly Salary', 
-        amount: 85000.00, 
-        type: 'INCOME', 
-        date: new Date().toISOString(), 
-        category: { categoryName: 'Salary' }, 
-        account: { accountName: 'HDFC Salary' } 
-      },
-      { 
-        transactionId: 'demo-t2', 
-        description: "Nature's Basket - Monthly Groceries", 
-        amount: 4680.00, 
-        type: 'EXPENSE', 
-        date: new Date(Date.now() - 86400000).toISOString(), 
-        category: { categoryName: 'Groceries' }, 
-        account: { accountName: 'ICICI Card' } 
-      },
-      { 
-        transactionId: 'demo-t3', 
-        description: 'Amazon - Noise Cancelling Headphones', 
-        amount: 6499.00, 
-        type: 'EXPENSE', 
-        date: new Date(Date.now() - 172800000).toISOString(), 
-        category: { categoryName: 'Shopping' }, 
-        account: { accountName: 'ICICI Card' } 
-      },
-      { 
-        transactionId: 'demo-t4', 
-        description: 'Urban Company - Home Maintenance', 
-        amount: 2150.00, 
-        type: 'EXPENSE', 
-        date: new Date(Date.now() - 259200000).toISOString(), 
-        category: { categoryName: 'Housing' }, 
-        account: { accountName: 'HDFC Salary' } 
-      },
-      { 
-        transactionId: 'demo-t5', 
-        description: 'Tata Power - Electricity & Utility Bill', 
-        amount: 1850.00, 
-        type: 'EXPENSE', 
-        date: new Date(Date.now() - 345600000).toISOString(), 
-        category: { categoryName: 'Utilities' }, 
-        account: { accountName: 'HDFC Salary' } 
-      }
-    ]
-  };
-
   ngOnInit() {
+    const userId = this.authService.getUserId();
     const session = this.authService.currentUser();
-    this.userName = session ? session.name : 'Muskan Kapri';
+    this.userName = session?.name || 'User';
     this.currentDate = new Date().toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',
@@ -515,80 +545,123 @@ export class DashboardComponent implements OnInit {
       day: 'numeric'
     });
 
-    // Populate demo data by default
-    this.applyDemoData();
-
-    // If session exists, also fetch live data in background
-    if (session) {
-      this.fetchLiveData(session.userId);
+    if (userId) {
+      this.restoreCachedData(userId);
+      this.fetchLiveData(userId);
     }
+  }
+
+  private restoreCachedData(userId: string) {
+    try {
+      const cached = sessionStorage.getItem('dashboard_cache_' + userId);
+      if (cached) {
+        const d = JSON.parse(cached);
+        this.netWorth = d.netWorth ?? 0;
+        this.monthlyIncome = d.monthlyIncome ?? 0;
+        this.monthlyExpense = d.monthlyExpense ?? 0;
+        this.accounts = d.accounts || [];
+        this.goals = d.goals || [];
+        this.recentTransactions = d.recentTransactions || [];
+      }
+    } catch (e) {
+      console.warn('Could not read cached dashboard data', e);
+    }
+  }
+
+  private saveCachedData(userId: string) {
+    try {
+      const data = {
+        netWorth: this.netWorth,
+        monthlyIncome: this.monthlyIncome,
+        monthlyExpense: this.monthlyExpense,
+        accounts: this.accounts,
+        goals: this.goals,
+        recentTransactions: this.recentTransactions
+      };
+      sessionStorage.setItem('dashboard_cache_' + userId, JSON.stringify(data));
+    } catch (e) {}
   }
 
   toggleGuide() {
     this.showGuide = !this.showGuide;
   }
 
-  setMode(demo: boolean) {
-    this.isDemoMode = demo;
-    if (demo) {
-      this.applyDemoData();
-    } else {
-      this.applyLiveData();
-    }
-  }
-
-  private applyDemoData() {
-    this.netWorth = this.demoData.netWorth;
-    this.monthlyIncome = this.demoData.monthlyIncome;
-    this.monthlyExpense = this.demoData.monthlyExpense;
-    this.accounts = this.demoData.accounts;
-    this.goals = this.demoData.goals;
-    this.recentTransactions = this.demoData.recentTransactions;
-    this.loading = false;
-  }
-
-  private applyLiveData() {
-    this.netWorth = this.liveNetWorth;
-    this.monthlyIncome = this.liveMonthlyIncome;
-    this.monthlyExpense = this.liveMonthlyExpense;
-    this.accounts = this.liveAccounts;
-    this.goals = this.liveGoals;
-    this.recentTransactions = this.liveRecentTransactions;
-  }
-
   fetchLiveData(userId: string) {
+    this.loading = true;
     this.reportService.getDashboardAnalytics(userId).subscribe({
       next: (res: any) => {
         if (res && res.data) {
           const d = res.data;
-          this.liveNetWorth = d.netWorth || 0;
-          this.liveMonthlyIncome = d.monthlyIncome || 0;
-          this.liveMonthlyExpense = d.monthlyExpense || 0;
-          this.liveAccounts = d.accounts || [];
-          this.liveGoals = d.goals || [];
+          this.netWorth = d.netWorth ?? 0;
+          this.monthlyIncome = d.monthlyIncome ?? 0;
+          this.monthlyExpense = d.monthlyExpense ?? 0;
+          this.accounts = d.accounts || [];
+          this.goals = d.goals || [];
+          this.saveCachedData(userId);
         }
+        this.loading = false;
+        this.cdr.markForCheck();
 
         this.transactionService.getTransactions({ userId, size: 5, sort: 'date,desc' }).subscribe({
           next: (tRes: any) => {
             if (tRes && tRes.data && tRes.data.content) {
-              this.liveRecentTransactions = tRes.data.content;
+              this.recentTransactions = tRes.data.content;
+              this.saveCachedData(userId);
             }
-            // If live data has non-zero records, user can switch or stay on demo
-            if (this.liveRecentTransactions.length > 0 || this.liveNetWorth > 0) {
-              // keep current choice
-            }
+            this.cdr.markForCheck();
           },
-          error: (err) => console.warn('Could not load live transactions', err)
+          error: (err) => {
+            console.warn('Could not load live transactions', err);
+            this.cdr.markForCheck();
+          }
         });
       },
-      error: (err) => console.warn('Could not load live analytics', err)
+      error: (err) => {
+        this.loading = false;
+        this.cdr.markForCheck();
+        console.warn('Could not load live analytics', err);
+      }
     });
   }
 
+  getNetSavings(): number {
+    return Math.max(0, this.monthlyIncome - this.monthlyExpense);
+  }
+
+  getBarHeight(val: number): number {
+    const savings = this.getNetSavings();
+    const maxVal = Math.max(this.monthlyIncome, this.monthlyExpense, savings, 1);
+    if (val <= 0) return 6;
+    const pct = (val / maxVal) * 92;
+    return Math.max(10, Math.min(96, Math.round(pct)));
+  }
+
+  getSavingsShare(): number {
+    if (this.monthlyIncome <= 0) return 0;
+    const savings = this.getNetSavings();
+    return Math.min(100, Math.max(0, (savings / this.monthlyIncome) * 100));
+  }
+
+  getMaxFlow(): number {
+    return Math.max(this.monthlyIncome, this.monthlyExpense, this.getNetSavings(), 1);
+  }
+
+  getExpenseShare(): number {
+    const total = Math.max(this.monthlyIncome, this.monthlyExpense);
+    if (total <= 0) return 0;
+    return Math.min(100, Math.max(0, (this.monthlyExpense / total) * 100));
+  }
+
+  getFlowHealthLabel(): string {
+    const savingsRate = this.getSavingsShare();
+    if (savingsRate >= 70) return 'Super Saver 🚀';
+    if (savingsRate >= 40) return 'Healthy Flow 👍';
+    if (savingsRate >= 20) return 'Moderate Flow ⚖️';
+    return 'High Spending ⚠️';
+  }
+
   getPercentage(val: number): number {
-    const maxVal = Math.max(this.monthlyIncome, this.monthlyExpense, this.monthlyIncome - this.monthlyExpense, 1);
-    const pct = (val / maxVal) * 85;
-    return pct > 12 ? pct : 12; // Minimum height for visibility
+    return this.getBarHeight(val);
   }
 
   getGoalProgressPercentage(goal: any): number {

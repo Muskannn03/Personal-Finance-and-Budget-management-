@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -15,14 +15,11 @@ import { ReminderService } from '../../core/services/reminder.service';
         <div>
           <div class="flex items-center gap-3">
             <h1 class="text-3xl font-extrabold tracking-tight text-text-main">Reminders</h1>
-            <span *ngIf="isDemoMode" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary-light text-brand-primary-dark border border-brand-primary/30">
-              Demo Values Active
-            </span>
           </div>
           <p class="text-text-sub text-sm mt-1">Never miss recurring bills, budget breaches or investment deposits.</p>
         </div>
 
-        <!-- Controls: Demo Toggle & Guide Pills -->
+        <!-- Controls: Guide Pill & Set Reminder -->
         <div class="flex flex-wrap items-center gap-2">
           <button 
             (click)="toggleGuide()" 
@@ -32,23 +29,6 @@ import { ReminderService } from '../../core/services/reminder.service';
             <span>💡</span>
             <span>{{ showGuide ? 'Hide Guide' : 'What is Where?' }}</span>
           </button>
-
-          <div class="flex items-center bg-white border border-brand-border rounded-2xl p-1 shadow-sm">
-            <button 
-              (click)="setMode(true)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Sample Data
-            </button>
-            <button 
-              (click)="setMode(false)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="!isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Live Data
-            </button>
-          </div>
 
           <button 
             (click)="openAddModal()" 
@@ -209,49 +189,16 @@ export class RemindersComponent implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private reminderService = inject(ReminderService);
+  private cdr = inject(ChangeDetectorRef);
 
   reminders: any[] = [];
   currentTab: 'PENDING' | 'COMPLETED' = 'PENDING';
-  loading = false;
-  isDemoMode = true;
+  loading = true;
   showGuide = true;
 
   showModal = false;
   formSubmitting = false;
   userId = '';
-
-  liveReminders: any[] = [];
-
-  readonly demoReminders = [
-    {
-      reminderId: 'rem-1',
-      title: 'Pay ICICI Coral Credit Card Statement Bill',
-      relatedType: 'BILL',
-      dueDate: new Date(Date.now() + 86400000 * 2).toISOString(),
-      status: 'PENDING'
-    },
-    {
-      reminderId: 'rem-2',
-      title: 'Review Monthly Grocery Budget Cap & Expenses',
-      relatedType: 'BUDGET',
-      dueDate: new Date(Date.now() + 86400000 * 4).toISOString(),
-      status: 'PENDING'
-    },
-    {
-      reminderId: 'rem-3',
-      title: 'Transfer Monthly ₹10,000 SIP to Emergency Fund',
-      relatedType: 'INVESTMENT',
-      dueDate: new Date(Date.now() + 86400000 * 6).toISOString(),
-      status: 'PENDING'
-    },
-    {
-      reminderId: 'rem-4',
-      title: 'Paid Electricity & Water Utility Bill',
-      relatedType: 'BILL',
-      dueDate: new Date(Date.now() - 86400000 * 3).toISOString(),
-      status: 'COMPLETED'
-    }
-  ];
 
   reminderForm: FormGroup = this.fb.group({
     title: ['', [Validators.required]],
@@ -260,50 +207,44 @@ export class RemindersComponent implements OnInit {
   });
 
   ngOnInit() {
-    const session = this.authService.currentUser();
-    this.userId = session ? session.userId : 'demo-user-id';
-
-    this.applyDemoData();
-
-    if (session) {
+    this.userId = this.authService.getUserId();
+    if (this.userId) {
       this.loadReminders();
+    } else {
+      this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 
   toggleGuide() {
     this.showGuide = !this.showGuide;
-  }
-
-  setMode(demo: boolean) {
-    this.isDemoMode = demo;
-    if (demo) {
-      this.applyDemoData();
-    } else {
-      this.applyLiveData();
-    }
-  }
-
-  private applyDemoData() {
-    this.reminders = [...this.demoReminders];
-    this.loading = false;
-  }
-
-  private applyLiveData() {
-    this.reminders = [...this.liveReminders];
-    this.loading = false;
+    this.cdr.markForCheck();
   }
 
   loadReminders() {
+    if (!this.userId) {
+      this.reminders = [];
+      this.loading = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.loading = true;
+    this.cdr.markForCheck();
     this.reminderService.getReminders(this.userId).subscribe({
       next: (res: any) => {
+        this.loading = false;
         if (res && res.data) {
-          this.liveReminders = res.data;
-          if (!this.isDemoMode) {
-            this.applyLiveData();
-          }
+          this.reminders = res.data;
+        } else {
+          this.reminders = [];
         }
+        this.cdr.markForCheck();
       },
-      error: (err) => console.warn('Could not load live reminders', err)
+      error: (err) => {
+        this.loading = false;
+        console.warn('Could not load live reminders', err);
+        this.cdr.markForCheck();
+      }
     });
   }
 
@@ -332,31 +273,20 @@ export class RemindersComponent implements OnInit {
       dueDate: new Date(Date.now() + 86400000).toISOString().substring(0, 16)
     });
     this.showModal = true;
+    this.cdr.markForCheck();
   }
 
   closeModal() {
     this.showModal = false;
+    this.cdr.markForCheck();
   }
 
   onSubmit() {
     if (this.reminderForm.invalid) return;
 
     this.formSubmitting = true;
+    this.cdr.markForCheck();
     const formVal = this.reminderForm.value;
-
-    if (this.isDemoMode) {
-      const newRem = {
-        reminderId: 'rem-' + Date.now(),
-        title: formVal.title,
-        relatedType: formVal.relatedType,
-        dueDate: formVal.dueDate,
-        status: 'PENDING'
-      };
-      this.reminders.unshift(newRem);
-      this.formSubmitting = false;
-      this.closeModal();
-      return;
-    }
 
     const payload = {
       ...formVal,
@@ -372,17 +302,13 @@ export class RemindersComponent implements OnInit {
       },
       error: (err) => {
         this.formSubmitting = false;
+        this.cdr.markForCheck();
         alert(err?.error?.message || 'Failed to create reminder.');
       }
     });
   }
 
   markAsComplete(id: string) {
-    if (this.isDemoMode) {
-      const target = this.reminders.find(r => r.reminderId === id);
-      if (target) target.status = 'COMPLETED';
-      return;
-    }
     this.reminderService.updateReminder(id, { status: 'COMPLETED' }).subscribe({
       next: () => this.loadReminders(),
       error: (err) => alert(err?.error?.message || 'Failed to complete reminder.')
@@ -391,10 +317,6 @@ export class RemindersComponent implements OnInit {
 
   deleteReminder(id: string) {
     if (confirm('Are you sure you want to delete this reminder?')) {
-      if (this.isDemoMode) {
-        this.reminders = this.reminders.filter(r => r.reminderId !== id);
-        return;
-      }
       this.reminderService.deleteReminder(id).subscribe({
         next: () => this.loadReminders(),
         error: (err) => alert(err?.error?.message || 'Failed to delete reminder.')

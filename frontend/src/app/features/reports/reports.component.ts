@@ -1,5 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { AuthService } from '../../core/services/auth.service';
 import { ReportService } from '../../core/services/report.service';
 
@@ -24,14 +26,11 @@ interface Segment {
         <div>
           <div class="flex items-center gap-3">
             <h1 class="text-3xl font-extrabold tracking-tight text-text-main">Financial Analytics</h1>
-            <span *ngIf="isDemoMode" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary-light text-brand-primary-dark border border-brand-primary/30">
-              Demo Values Active
-            </span>
           </div>
           <p class="text-text-sub text-sm mt-1">Deep analysis of your spending habits, trends, and budget utilizations.</p>
         </div>
 
-        <!-- Controls: Demo Toggle & Guide Pills -->
+        <!-- Controls: Guide Pill -->
         <div class="flex flex-wrap items-center gap-2">
           <button 
             (click)="toggleGuide()" 
@@ -41,23 +40,6 @@ interface Segment {
             <span>💡</span>
             <span>{{ showGuide ? 'Hide Guide' : 'What is Where?' }}</span>
           </button>
-
-          <div class="flex items-center bg-white border border-brand-border rounded-2xl p-1 shadow-sm">
-            <button 
-              (click)="setMode(true)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Sample Data
-            </button>
-            <button 
-              (click)="setMode(false)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="!isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Live Data
-            </button>
-          </div>
         </div>
       </div>
 
@@ -228,122 +210,99 @@ interface Segment {
 export class ReportsComponent implements OnInit {
   private authService = inject(AuthService);
   private reportService = inject(ReportService);
+  private cdr = inject(ChangeDetectorRef);
 
-  loading = false;
-  isDemoMode = true;
+  loading = true;
   showGuide = true;
   userId = '';
-  totalSpent = 34250;
+  totalSpent = 0;
   
   spendingSegments: Segment[] = [];
   monthlyTrends: any[] = [];
   budgetUtilizations: any[] = [];
 
-  liveSpendingSegments: Segment[] = [];
-  liveMonthlyTrends: any[] = [];
-  liveBudgetUtilizations: any[] = [];
-  liveTotalSpent = 0;
-
   donutColors = ['#E98FA3', '#C3B1E1', '#D6A2E8', '#FDE2E4', '#F9D423', '#3498db', '#8FB9A8'];
 
-  // Demo datasets
-  readonly demoSpendingRaw = [
-    { categoryName: 'Groceries', amountSpent: 11200 },
-    { categoryName: 'Shopping', amountSpent: 8900 },
-    { categoryName: 'Housing & Rent', amountSpent: 6000 },
-    { categoryName: 'Utilities & Bills', amountSpent: 4150 },
-    { categoryName: 'Dining Out', amountSpent: 4000 }
-  ];
-
-  readonly demoMonthlyTrends = [
-    { month: 'May 2026', income: 75000, expense: 38000 },
-    { month: 'Jun 2026', income: 80000, expense: 42000 },
-    { month: 'Jul 2026', income: 78000, expense: 35000 },
-    { month: 'Aug 2026', income: 85000, expense: 39000 },
-    { month: 'Sep 2026', income: 85000, expense: 34250 }
-  ];
-
-  readonly demoBudgetUtils = [
-    { categoryName: 'Groceries & Provisions', actualSpent: 11200, limitAmount: 15000, utilizationPercentage: 74.67 },
-    { categoryName: 'Shopping & Fashion', actualSpent: 8900, limitAmount: 10000, utilizationPercentage: 89.00 },
-    { categoryName: 'Dining & Cafes', actualSpent: 2450, limitAmount: 6000, utilizationPercentage: 40.83 },
-    { categoryName: 'Utilities & Bills', actualSpent: 1850, limitAmount: 4000, utilizationPercentage: 46.25 }
-  ];
-
   ngOnInit() {
-    const session = this.authService.currentUser();
-    this.userId = session ? session.userId : 'demo-user-id';
-
-    this.applyDemoData();
-
-    if (session) {
+    this.userId = this.authService.getUserId();
+    if (this.userId) {
       this.loadAnalytics();
+    } else {
+      this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 
   toggleGuide() {
     this.showGuide = !this.showGuide;
-  }
-
-  setMode(demo: boolean) {
-    this.isDemoMode = demo;
-    if (demo) {
-      this.applyDemoData();
-    } else {
-      this.applyLiveData();
-    }
-  }
-
-  private applyDemoData() {
-    this.totalSpent = 34250;
-    this.spendingSegments = this.calculateSegments(this.demoSpendingRaw);
-    this.monthlyTrends = [...this.demoMonthlyTrends];
-    this.budgetUtilizations = [...this.demoBudgetUtils];
-    this.loading = false;
-  }
-
-  private applyLiveData() {
-    this.totalSpent = this.liveTotalSpent;
-    this.spendingSegments = [...this.liveSpendingSegments];
-    this.monthlyTrends = [...this.liveMonthlyTrends];
-    this.budgetUtilizations = [...this.liveBudgetUtilizations];
-    this.loading = false;
+    this.cdr.markForCheck();
   }
 
   loadAnalytics() {
-    this.reportService.getCategorySpendingReport(this.userId, '', '').subscribe({
-      next: (res: any) => {
-        if (res && res.data) {
-          const rawSpending = res.data;
-          this.liveTotalSpent = rawSpending.reduce((acc: number, curr: any) => acc + (curr.amountSpent || 0), 0);
-          this.liveSpendingSegments = this.calculateSegments(rawSpending);
-          if (!this.isDemoMode) {
-            this.totalSpent = this.liveTotalSpent;
-            this.spendingSegments = [...this.liveSpendingSegments];
-          }
-        }
-      },
-      error: (err: any) => console.warn('Could not load live spending', err)
-    });
+    if (!this.userId) {
+      this.totalSpent = 0;
+      this.spendingSegments = [];
+      this.monthlyTrends = [];
+      this.budgetUtilizations = [];
+      this.loading = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.loading = true;
+    this.cdr.markForCheck();
 
-    this.reportService.getMonthlyTrends(this.userId).subscribe({
-      next: (res: any) => {
-        if (res && res.data) {
-          this.liveMonthlyTrends = res.data;
-          if (!this.isDemoMode) this.monthlyTrends = [...this.liveMonthlyTrends];
+    forkJoin({
+      spending: this.reportService.getCategorySpendingReport(this.userId, '', '').pipe(
+        catchError(err => {
+          console.warn('Could not load category spending', err);
+          return of({ data: [] });
+        })
+      ),
+      trends: this.reportService.getMonthlyTrends(this.userId).pipe(
+        catchError(err => {
+          console.warn('Could not load monthly trends', err);
+          return of({ data: [] });
+        })
+      ),
+      budgets: this.reportService.getBudgetUtilizationReport(this.userId).pipe(
+        catchError(err => {
+          console.warn('Could not load budget utilizations', err);
+          return of({ data: [] });
+        })
+      )
+    }).subscribe({
+      next: ({ spending, trends, budgets }) => {
+        // 1. Process Spending Segments
+        if (spending && spending.data) {
+          const rawSpending = spending.data;
+          this.totalSpent = rawSpending.reduce((acc: number, curr: any) => acc + (curr.amountSpent || 0), 0);
+          this.spendingSegments = this.calculateSegments(rawSpending);
+        } else {
+          this.totalSpent = 0;
+          this.spendingSegments = [];
         }
-      },
-      error: (err: any) => console.warn('Could not load live monthly trend', err)
-    });
 
-    this.reportService.getBudgetUtilizationReport(this.userId).subscribe({
-      next: (res: any) => {
-        if (res && res.data) {
-          this.liveBudgetUtilizations = res.data;
-          if (!this.isDemoMode) this.budgetUtilizations = [...this.liveBudgetUtilizations];
+        // 2. Process Monthly Trends
+        if (trends && trends.data) {
+          this.monthlyTrends = trends.data;
+        } else {
+          this.monthlyTrends = [];
         }
+
+        // 3. Process Budget Utilizations
+        if (budgets && budgets.data) {
+          this.budgetUtilizations = budgets.data;
+        } else {
+          this.budgetUtilizations = [];
+        }
+
+        this.loading = false;
+        this.cdr.markForCheck();
       },
-      error: (err: any) => console.warn('Could not load live budget utilization', err)
+      error: () => {
+        this.loading = false;
+        this.cdr.markForCheck();
+      }
     });
   }
 
@@ -374,9 +333,10 @@ export class ReportsComponent implements OnInit {
   }
 
   getTrendHeight(val: number): number {
-    const max = 95000;
-    const pct = (val / max) * 100;
-    return pct > 10 ? (pct > 100 ? 100 : pct) : 10;
+    if (!val || val <= 0) return 4;
+    const maxVal = Math.max(...this.monthlyTrends.map(t => Math.max(t.income || 0, t.expense || 0)), 1000);
+    const pct = (val / maxVal) * 100;
+    return pct > 8 ? (pct > 100 ? 100 : pct) : 8;
   }
 
   getProgressBarClass(utilPct: number): string {

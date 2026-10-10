@@ -11,10 +11,13 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error) => {
       if (error.status === 401) {
-        alert('Session expired. Please log in again.');
-        authService.logout();
+        // Only trigger session logout if this is NOT a login/register attempt
+        if (!req.url.includes('/auth/login') && !req.url.includes('/auth/register')) {
+          console.warn('Session expired or unauthorized request to:', req.url);
+          authService.logout();
+        }
       } else if (error.status === 403) {
-        alert("You don't have permission to perform this action.");
+        console.warn('Forbidden resource:', req.url);
       }
       return throwError(() => error);
     })

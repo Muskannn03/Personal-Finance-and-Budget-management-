@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -16,14 +16,11 @@ import { ReportService } from '../../core/services/report.service';
         <div>
           <div class="flex items-center gap-3">
             <h1 class="text-3xl font-extrabold tracking-tight text-text-main">My Budgets</h1>
-            <span *ngIf="isDemoMode" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary-light text-brand-primary-dark border border-brand-primary/30">
-              Demo Values Active
-            </span>
           </div>
           <p class="text-text-sub text-sm mt-1">Enforce limits on your monthly expenditures by category.</p>
         </div>
 
-        <!-- Controls: Demo Toggle & Guide Pills -->
+        <!-- Controls -->
         <div class="flex flex-wrap items-center gap-2">
           <button 
             (click)="toggleGuide()" 
@@ -33,23 +30,6 @@ import { ReportService } from '../../core/services/report.service';
             <span>💡</span>
             <span>{{ showGuide ? 'Hide Guide' : 'What is Where?' }}</span>
           </button>
-
-          <div class="flex items-center bg-white border border-brand-border rounded-2xl p-1 shadow-sm">
-            <button 
-              (click)="setMode(true)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Sample Data
-            </button>
-            <button 
-              (click)="setMode(false)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="!isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Live Data
-            </button>
-          </div>
 
           <button 
             (click)="openAddModal()" 
@@ -237,80 +217,22 @@ export class BudgetsComponent implements OnInit {
   private authService = inject(AuthService);
   private budgetService = inject(BudgetService);
   private reportService = inject(ReportService);
+  private cdr = inject(ChangeDetectorRef);
 
   budgets: any[] = [];
   categories: any[] = [];
   budgetUtilList: any[] = [];
 
-  loading = false;
-  isDemoMode = true;
-  showGuide = true;
+  loading = true;
+  showGuide = false;
 
   showModal = false;
   editingBudgetId: string | null = null;
   formSubmitting = false;
   userId = '';
 
-  totalLimit = 38500;
-  totalSpent = 28000;
-
-  // Cached live data
-  liveBudgets: any[] = [];
-  liveBudgetUtilList: any[] = [];
-  liveCategories: any[] = [];
-  liveTotalLimit = 0;
-  liveTotalSpent = 0;
-
-  readonly demoCategories = [
-    { categoryId: 'b-cat-1', categoryName: 'Groceries & Provisions' },
-    { categoryId: 'b-cat-2', categoryName: 'Shopping & Fashion' },
-    { categoryId: 'b-cat-3', categoryName: 'Dining & Cafes' },
-    { categoryId: 'b-cat-4', categoryName: 'Utilities & Bills' },
-    { categoryId: 'b-cat-5', categoryName: 'Entertainment & Movies' }
-  ];
-
-  readonly demoBudgets = [
-    {
-      budgetId: 'db-1',
-      categoryName: 'Groceries & Provisions',
-      limitAmount: 15000,
-      actualSpent: 11200,
-      utilizationPercentage: 74.67,
-      period: 'MONTHLY'
-    },
-    {
-      budgetId: 'db-2',
-      categoryName: 'Shopping & Fashion',
-      limitAmount: 10000,
-      actualSpent: 8900,
-      utilizationPercentage: 89.00,
-      period: 'MONTHLY'
-    },
-    {
-      budgetId: 'db-3',
-      categoryName: 'Dining & Cafes',
-      limitAmount: 6000,
-      actualSpent: 2450,
-      utilizationPercentage: 40.83,
-      period: 'MONTHLY'
-    },
-    {
-      budgetId: 'db-4',
-      categoryName: 'Utilities & Bills',
-      limitAmount: 4000,
-      actualSpent: 1850,
-      utilizationPercentage: 46.25,
-      period: 'MONTHLY'
-    },
-    {
-      budgetId: 'db-5',
-      categoryName: 'Entertainment & Movies',
-      limitAmount: 3500,
-      actualSpent: 3600,
-      utilizationPercentage: 102.85,
-      period: 'MONTHLY'
-    }
-  ];
+  totalLimit = 0;
+  totalSpent = 0;
 
   budgetForm: FormGroup = this.fb.group({
     categoryId: ['', [Validators.required]],
@@ -321,81 +243,94 @@ export class BudgetsComponent implements OnInit {
   });
 
   ngOnInit() {
-    const session = this.authService.currentUser();
-    this.userId = session ? session.userId : 'demo-user-id';
-
-    // Apply demo by default
-    this.applyDemoData();
-
-    if (session) {
+    this.userId = this.authService.getUserId();
+    if (this.userId) {
       this.loadCategories();
       this.loadBudgets();
+    } else {
+      this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 
   toggleGuide() {
     this.showGuide = !this.showGuide;
-  }
-
-  setMode(demo: boolean) {
-    this.isDemoMode = demo;
-    if (demo) {
-      this.applyDemoData();
-    } else {
-      this.applyLiveData();
-    }
-  }
-
-  private applyDemoData() {
-    this.budgetUtilList = [...this.demoBudgets];
-    this.categories = [...this.demoCategories];
-    this.totalLimit = 38500;
-    this.totalSpent = 28000;
-    this.loading = false;
-  }
-
-  private applyLiveData() {
-    this.budgetUtilList = [...this.liveBudgetUtilList];
-    this.categories = [...this.liveCategories];
-    this.totalLimit = this.liveTotalLimit;
-    this.totalSpent = this.liveTotalSpent;
-    this.loading = false;
+    this.cdr.markForCheck();
   }
 
   loadCategories() {
+    if (!this.userId) return;
     this.budgetService.getCategories(this.userId).subscribe({
       next: (res: any) => {
         if (res && res.data) {
-          this.liveCategories = res.data;
-          if (!this.isDemoMode) this.categories = res.data;
+          this.categories = res.data;
+          this.cdr.markForCheck();
         }
       }
     });
   }
 
   loadBudgets() {
+    if (!this.userId) {
+      this.loading = false;
+      this.budgets = [];
+      this.budgetUtilList = [];
+      this.cdr.markForCheck();
+      return;
+    }
+    this.loading = true;
+    this.cdr.markForCheck();
+
     this.budgetService.getBudgets(this.userId).subscribe({
       next: (res: any) => {
         if (res && res.data) {
-          this.liveBudgets = res.data;
-          this.liveTotalLimit = 0;
-          this.liveBudgets.forEach(b => this.liveTotalLimit += b.limitAmount || 0);
+          this.budgets = res.data;
+          this.totalLimit = 0;
+          this.budgets.forEach(b => this.totalLimit += (b.limitAmount || 0));
+
+          // Immediate fallback mapping so existing budgets render instantly without waiting for report
+          this.budgetUtilList = this.budgets.map(b => ({
+            budgetId: b.budgetId,
+            categoryName: b.categoryName || b.category?.categoryName || 'General',
+            categoryId: b.categoryId,
+            limitAmount: b.limitAmount || 0,
+            actualSpent: 0,
+            utilizationPercentage: 0,
+            period: b.period || 'MONTHLY',
+            startDate: b.startDate,
+            endDate: b.endDate
+          }));
+          this.cdr.markForCheck();
 
           this.reportService.getBudgetUtilizationReport(this.userId).subscribe({
             next: (utilRes: any) => {
-              if (utilRes && utilRes.data) {
-                this.liveBudgetUtilList = utilRes.data;
-                this.liveTotalSpent = 0;
-                this.liveBudgetUtilList.forEach(b => this.liveTotalSpent += b.actualSpent || 0);
-                if (!this.isDemoMode) {
-                  this.applyLiveData();
-                }
+              this.loading = false;
+              if (utilRes && utilRes.data && utilRes.data.length > 0) {
+                this.budgetUtilList = utilRes.data;
+                this.totalSpent = 0;
+                this.budgetUtilList.forEach(b => this.totalSpent += (b.actualSpent || 0));
               }
+              this.cdr.markForCheck();
+            },
+            error: () => {
+              this.loading = false;
+              this.cdr.markForCheck();
             }
           });
+        } else {
+          this.budgets = [];
+          this.budgetUtilList = [];
+          this.loading = false;
+          this.cdr.markForCheck();
         }
       },
-      error: (err: any) => console.warn('Could not load live budgets', err)
+      error: (err: any) => {
+        this.loading = false;
+        this.budgets = [];
+        this.budgetUtilList = [];
+        this.cdr.markForCheck();
+        console.warn('Could not load live budgets', err);
+      }
     });
   }
 
@@ -466,24 +401,6 @@ export class BudgetsComponent implements OnInit {
     this.formSubmitting = true;
     const formVal = this.budgetForm.value;
 
-    if (this.isDemoMode) {
-      const cat = this.categories.find(c => c.categoryId === formVal.categoryId);
-      const limit = parseFloat(formVal.limitAmount);
-      const newBudget = {
-        budgetId: 'db-' + Date.now(),
-        categoryName: cat ? cat.categoryName : 'New Category',
-        limitAmount: limit,
-        actualSpent: 0,
-        utilizationPercentage: 0,
-        period: formVal.period
-      };
-      this.budgetUtilList.push(newBudget);
-      this.totalLimit += limit;
-      this.formSubmitting = false;
-      this.closeModal();
-      return;
-    }
-
     const payload = { ...formVal, userId: this.userId };
     if (this.editingBudgetId) {
       this.budgetService.updateBudget(this.editingBudgetId, payload).subscribe({
@@ -514,15 +431,6 @@ export class BudgetsComponent implements OnInit {
 
   deleteBudget(id: string) {
     if (confirm('Are you sure you want to delete this budget limit?')) {
-      if (this.isDemoMode) {
-        const target = this.budgetUtilList.find(b => b.budgetId === id);
-        if (target) {
-          this.totalLimit -= target.limitAmount;
-          this.totalSpent -= target.actualSpent;
-        }
-        this.budgetUtilList = this.budgetUtilList.filter(b => b.budgetId !== id);
-        return;
-      }
       this.budgetService.deleteBudget(id).subscribe({
         next: () => this.loadBudgets(),
         error: (err) => alert(err?.error?.message || 'Failed to delete budget limit.')

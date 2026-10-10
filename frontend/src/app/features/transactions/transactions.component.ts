@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -17,14 +17,11 @@ import { BudgetService } from '../../core/services/budget.service';
         <div>
           <div class="flex items-center gap-3">
             <h1 class="text-3xl font-extrabold tracking-tight text-text-main">Transactions</h1>
-            <span *ngIf="isDemoMode" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary-light text-brand-primary-dark border border-brand-primary/30">
-              Demo Values Active
-            </span>
           </div>
           <p class="text-text-sub text-sm mt-1">Track every rupee coming in and going out.</p>
         </div>
 
-        <!-- Controls: Demo Toggle & Guide Pills -->
+        <!-- Controls -->
         <div class="flex flex-wrap items-center gap-2">
           <button 
             (click)="toggleGuide()" 
@@ -34,23 +31,6 @@ import { BudgetService } from '../../core/services/budget.service';
             <span>💡</span>
             <span>{{ showGuide ? 'Hide Guide' : 'What is Where?' }}</span>
           </button>
-
-          <div class="flex items-center bg-white border border-brand-border rounded-2xl p-1 shadow-sm">
-            <button 
-              (click)="setMode(true)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Sample Data
-            </button>
-            <button 
-              (click)="setMode(false)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="!isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Live Data
-            </button>
-          </div>
 
           <button 
             (click)="openAddModal()" 
@@ -133,9 +113,9 @@ import { BudgetService } from '../../core/services/budget.service';
           </span>
         </div>
 
-        <!-- Loader -->
-        <div *ngIf="loading" class="p-12 text-center text-text-sub text-sm">
-          Loading transactions...
+        <!-- Loader Skeleton -->
+        <div *ngIf="loading" class="p-8 space-y-4">
+          <div class="h-10 bg-brand-bg animate-pulse rounded-xl" *ngFor="let i of [1, 2, 3, 4, 5]"></div>
         </div>
 
         <!-- Empty State -->
@@ -164,10 +144,10 @@ import { BudgetService } from '../../core/services/budget.service';
                   <span class="px-2.5 py-1 rounded-full text-xs font-semibold"
                         [class.bg-emerald-50]="t.type === 'INCOME'" [class.text-emerald-700]="t.type === 'INCOME'"
                         [class.bg-orange-50]="t.type === 'EXPENSE'" [class.text-orange-600]="t.type === 'EXPENSE'">
-                    {{ t.category?.categoryName || 'General' }}
+                    {{ t.categoryName || t.category?.categoryName || 'General' }}
                   </span>
                 </td>
-                <td class="p-4 text-text-sub text-xs font-medium">{{ t.account?.accountName || 'Cash' }}</td>
+                <td class="p-4 text-text-sub text-xs font-medium">{{ t.accountName || t.account?.accountName || 'Cash' }}</td>
                 <td class="p-4 text-text-sub text-xs">{{ t.date | date:'MMM d, yyyy h:mm a' }}</td>
                 <td class="p-4 text-right font-extrabold" [class.text-emerald-600]="t.type === 'INCOME'" [class.text-orange-600]="t.type === 'EXPENSE'">
                   {{ t.type === 'INCOME' ? '+' : '-' }}₹{{ t.amount | number:'1.2-2' }}
@@ -195,9 +175,9 @@ import { BudgetService } from '../../core/services/budget.service';
             </div>
             <div class="flex justify-between items-center text-xs">
               <span class="px-2 py-0.5 rounded-full bg-brand-bg border border-brand-border text-text-sub">
-                {{ t.category?.categoryName || 'General' }}
+                {{ t.categoryName || t.category?.categoryName || 'General' }}
               </span>
-              <span class="text-text-sub">{{ t.account?.accountName }}</span>
+              <span class="text-text-sub">{{ t.accountName || t.account?.accountName || 'Cash' }}</span>
             </div>
             <div class="flex justify-end gap-3 pt-2 text-xs">
               <button (click)="openEditModal(t)" class="text-brand-primary font-bold">Edit</button>
@@ -357,14 +337,14 @@ export class TransactionsComponent implements OnInit {
   private transactionService = inject(TransactionService);
   private accountService = inject(AccountService);
   private budgetService = inject(BudgetService);
+  private cdr = inject(ChangeDetectorRef);
 
   transactions: any[] = [];
   accountsList: any[] = [];
   categoriesList: any[] = [];
   
-  loading = false;
-  isDemoMode = true;
-  showGuide = true;
+  loading = true;
+  showGuide = false;
 
   showModal = false;
   editingTransactionId: string | null = null;
@@ -382,105 +362,6 @@ export class TransactionsComponent implements OnInit {
   filterStartDate = '';
   filterEndDate = '';
 
-  // Cached live data
-  liveTransactions: any[] = [];
-  liveAccountsList: any[] = [];
-  liveCategoriesList: any[] = [];
-
-  // Rich demo dataset
-  readonly demoAccounts = [
-    { accountId: 'acc-1', accountName: 'HDFC Salary Account' },
-    { accountId: 'acc-2', accountName: 'ICICI Coral Credit Card' },
-    { accountId: 'acc-3', accountName: 'Groww Mutual Funds & SIP' },
-    { accountId: 'acc-4', accountName: 'Physical Cash & Wallet' }
-  ];
-
-  readonly demoCategories = [
-    { categoryId: 'cat-1', categoryName: 'Salary' },
-    { categoryId: 'cat-2', categoryName: 'Groceries' },
-    { categoryId: 'cat-3', categoryName: 'Shopping' },
-    { categoryId: 'cat-4', categoryName: 'Housing' },
-    { categoryId: 'cat-5', categoryName: 'Utilities' },
-    { categoryId: 'cat-6', categoryName: 'Freelance' },
-    { categoryId: 'cat-7', categoryName: 'Dining Out' },
-    { categoryId: 'cat-8', categoryName: 'Entertainment' }
-  ];
-
-  readonly demoTransactions = [
-    {
-      transactionId: 't-1',
-      description: 'TechCorp Solutions - Monthly Salary Credit',
-      category: { categoryName: 'Salary' },
-      account: { accountName: 'HDFC Salary Account' },
-      date: new Date().toISOString(),
-      amount: 85000.00,
-      type: 'INCOME'
-    },
-    {
-      transactionId: 't-2',
-      description: "Nature's Basket - Organic Vegetables & Groceries",
-      category: { categoryName: 'Groceries' },
-      account: { accountName: 'ICICI Coral Credit Card' },
-      date: new Date(Date.now() - 86400000).toISOString(),
-      amount: 4680.00,
-      type: 'EXPENSE'
-    },
-    {
-      transactionId: 't-3',
-      description: 'Amazon India - Sony Wireless Noise Cancelling Headphones',
-      category: { categoryName: 'Shopping' },
-      account: { accountName: 'ICICI Coral Credit Card' },
-      date: new Date(Date.now() - 172800000).toISOString(),
-      amount: 6499.00,
-      type: 'EXPENSE'
-    },
-    {
-      transactionId: 't-4',
-      description: 'Urban Company - AC Deep Cleaning & Home Maintenance',
-      category: { categoryName: 'Housing' },
-      account: { accountName: 'HDFC Salary Account' },
-      date: new Date(Date.now() - 259200000).toISOString(),
-      amount: 2150.00,
-      type: 'EXPENSE'
-    },
-    {
-      transactionId: 't-5',
-      description: 'Tata Power - Electricity & Utility Bill Payment',
-      category: { categoryName: 'Utilities' },
-      account: { accountName: 'HDFC Salary Account' },
-      date: new Date(Date.now() - 345600000).toISOString(),
-      amount: 1850.00,
-      type: 'EXPENSE'
-    },
-    {
-      transactionId: 't-6',
-      description: 'FinTech App - UI/UX Design Consulting Retainer',
-      category: { categoryName: 'Freelance' },
-      account: { accountName: 'HDFC Salary Account' },
-      date: new Date(Date.now() - 432000000).toISOString(),
-      amount: 25000.00,
-      type: 'INCOME'
-    },
-    {
-      transactionId: 't-7',
-      description: 'Swiggy Gourmet Dining & Pizza Delivery',
-      category: { categoryName: 'Dining Out' },
-      account: { accountName: 'Physical Cash & Wallet' },
-      date: new Date(Date.now() - 518400000).toISOString(),
-      amount: 1420.00,
-      type: 'EXPENSE'
-    },
-    {
-      transactionId: 't-8',
-      description: 'Netflix & Spotify Premium Annual Subscription',
-      category: { categoryName: 'Entertainment' },
-      account: { accountName: 'ICICI Coral Credit Card' },
-      date: new Date(Date.now() - 604800000).toISOString(),
-      amount: 999.00,
-      type: 'EXPENSE'
-    }
-  ];
-
   transactionForm: FormGroup = this.fb.group({
     type: ['EXPENSE', [Validators.required]],
     amount: ['', [Validators.required, Validators.min(0.01)]],
@@ -491,52 +372,28 @@ export class TransactionsComponent implements OnInit {
   });
 
   ngOnInit() {
-    const session = this.authService.currentUser();
-    this.userId = session ? session.userId : 'demo-user-id';
-    
-    // Apply demo data by default
-    this.applyDemoData();
-
-    if (session) {
+    this.userId = this.authService.getUserId();
+    if (this.userId) {
       this.loadSupportData();
       this.loadTransactions();
+    } else {
+      this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 
   toggleGuide() {
     this.showGuide = !this.showGuide;
-  }
-
-  setMode(demo: boolean) {
-    this.isDemoMode = demo;
-    if (demo) {
-      this.applyDemoData();
-    } else {
-      this.applyLiveData();
-    }
-  }
-
-  private applyDemoData() {
-    this.transactions = [...this.demoTransactions];
-    this.accountsList = [...this.demoAccounts];
-    this.categoriesList = [...this.demoCategories];
-    this.totalPages = 1;
-    this.loading = false;
-  }
-
-  private applyLiveData() {
-    this.transactions = [...this.liveTransactions];
-    this.accountsList = [...this.liveAccountsList];
-    this.categoriesList = [...this.liveCategoriesList];
-    this.loading = false;
+    this.cdr.markForCheck();
   }
 
   loadSupportData() {
+    if (!this.userId) return;
     this.accountService.getAccounts(this.userId).subscribe({
       next: (res: any) => {
         if (res && res.data) {
-          this.liveAccountsList = res.data;
-          if (!this.isDemoMode) this.accountsList = res.data;
+          this.accountsList = res.data;
+          this.cdr.markForCheck();
         }
       }
     });
@@ -544,14 +401,23 @@ export class TransactionsComponent implements OnInit {
     this.budgetService.getCategories(this.userId).subscribe({
       next: (res: any) => {
         if (res && res.data) {
-          this.liveCategoriesList = res.data;
-          if (!this.isDemoMode) this.categoriesList = res.data;
+          this.categoriesList = res.data;
+          this.cdr.markForCheck();
         }
       }
     });
   }
 
   loadTransactions() {
+    if (!this.userId) {
+      this.loading = false;
+      this.transactions = [];
+      this.cdr.markForCheck();
+      return;
+    }
+    this.loading = true;
+    this.cdr.markForCheck();
+
     const params: any = {
       userId: this.userId,
       page: this.currentPage,
@@ -566,26 +432,25 @@ export class TransactionsComponent implements OnInit {
 
     this.transactionService.getTransactions(params).subscribe({
       next: (res: any) => {
+        this.loading = false;
         if (res && res.data) {
-          this.liveTransactions = res.data.content || [];
+          this.transactions = res.data.content || [];
           this.totalPages = res.data.totalPages || 1;
-          if (!this.isDemoMode) {
-            this.transactions = [...this.liveTransactions];
-          }
+        } else {
+          this.transactions = [];
         }
+        this.cdr.markForCheck();
       },
-      error: (err) => console.warn('Live transactions fetch error', err)
+      error: (err) => {
+        this.loading = false;
+        this.transactions = [];
+        this.cdr.markForCheck();
+        console.warn('Live transactions fetch error', err);
+      }
     });
   }
 
   applyFilters() {
-    if (this.isDemoMode) {
-      this.transactions = this.demoTransactions.filter(t => {
-        const matchesType = !this.filterType || t.type === this.filterType;
-        return matchesType;
-      });
-      return;
-    }
     this.currentPage = 0;
     this.loadTransactions();
   }
@@ -596,17 +461,13 @@ export class TransactionsComponent implements OnInit {
     this.filterStartDate = '';
     this.filterEndDate = '';
     this.currentPage = 0;
-    if (this.isDemoMode) {
-      this.applyDemoData();
-    } else {
-      this.loadTransactions();
-    }
+    this.loadTransactions();
   }
 
   goToPage(page: number) {
     if (page >= 0 && page < this.totalPages) {
       this.currentPage = page;
-      if (!this.isDemoMode) this.loadTransactions();
+      this.loadTransactions();
     }
   }
 
@@ -657,25 +518,6 @@ export class TransactionsComponent implements OnInit {
 
     this.formSubmitting = true;
     const formVal = this.transactionForm.value;
-    
-    // In demo mode, simulate instant addition
-    if (this.isDemoMode) {
-      const selectedCat = this.categoriesList.find(c => c.categoryId === formVal.categoryId);
-      const selectedAcc = this.accountsList.find(a => a.accountId === formVal.accountId);
-      const newTx = {
-        transactionId: 'demo-' + Date.now(),
-        description: formVal.description,
-        amount: parseFloat(formVal.amount),
-        type: formVal.type,
-        date: formVal.date ? new Date(formVal.date).toISOString() : new Date().toISOString(),
-        category: { categoryName: selectedCat ? selectedCat.categoryName : 'General' },
-        account: { accountName: selectedAcc ? selectedAcc.accountName : 'Cash' }
-      };
-      this.transactions.unshift(newTx);
-      this.formSubmitting = false;
-      this.closeModal();
-      return;
-    }
 
     const payload = {
       ...formVal,
@@ -712,10 +554,6 @@ export class TransactionsComponent implements OnInit {
 
   deleteTransaction(id: string) {
     if (confirm('Are you sure you want to delete this transaction record?')) {
-      if (this.isDemoMode) {
-        this.transactions = this.transactions.filter(t => t.transactionId !== id);
-        return;
-      }
       this.transactionService.deleteTransaction(id).subscribe({
         next: () => this.loadTransactions(),
         error: (err) => alert(err?.error?.message || 'Failed to delete transaction.')

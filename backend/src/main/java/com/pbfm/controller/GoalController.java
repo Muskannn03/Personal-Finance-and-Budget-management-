@@ -6,6 +6,7 @@ import com.pbfm.exception.ResourceNotFoundException;
 import com.pbfm.repository.GoalRepository;
 import com.pbfm.repository.UserRepository;
 import com.pbfm.response.ApiResponse;
+import com.pbfm.response.GoalResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,7 +31,7 @@ public class GoalController {
 
     @PostMapping
     @Operation(summary = "Create a new goal")
-    public ResponseEntity<ApiResponse<Goal>> createGoal(@Valid @RequestBody Goal request) {
+    public ResponseEntity<ApiResponse<GoalResponse>> createGoal(@Valid @RequestBody Goal request) {
         log.info("Creating goal '{}' with target amount {} for user ID: {}", request.getGoalName(), request.getTargetAmount(), request.getUserId());
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
@@ -40,24 +41,24 @@ public class GoalController {
 
         log.info("Goal created successfully with ID: {}", savedGoal.getGoalId());
         return new ResponseEntity<>(
-                ApiResponse.success(savedGoal, "Goal created successfully"),
+                ApiResponse.success(GoalResponse.fromEntity(savedGoal), "Goal created successfully"),
                 HttpStatus.CREATED
         );
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get goal by ID")
-    public ResponseEntity<ApiResponse<Goal>> getGoalById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<GoalResponse>> getGoalById(@PathVariable UUID id) {
         log.info("Fetching goal by ID: {}", id);
         Goal goal = goalRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Goal not found with id: " + id));
 
-        return ResponseEntity.ok(ApiResponse.success(goal));
+        return ResponseEntity.ok(ApiResponse.success(GoalResponse.fromEntity(goal)));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing goal")
-    public ResponseEntity<ApiResponse<Goal>> updateGoal(
+    public ResponseEntity<ApiResponse<GoalResponse>> updateGoal(
             @PathVariable UUID id,
             @Valid @RequestBody Goal request) {
         log.info("Updating goal with ID: {}", id);
@@ -71,7 +72,7 @@ public class GoalController {
         Goal updatedGoal = goalRepository.save(goal);
 
         log.info("Goal with ID: {} updated successfully", id);
-        return ResponseEntity.ok(ApiResponse.success(updatedGoal, "Goal updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(GoalResponse.fromEntity(updatedGoal), "Goal updated successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -88,13 +89,14 @@ public class GoalController {
 
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get all goals for a specific user")
-    public ResponseEntity<ApiResponse<List<Goal>>> getGoalsByUserId(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<List<GoalResponse>>> getGoalsByUserId(@PathVariable UUID userId) {
         log.info("Fetching all goals for user ID: {}", userId);
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
         List<Goal> goals = goalRepository.findByUser_UserId(userId);
         log.info("Found {} goals for user ID: {}", goals.size(), userId);
-        return ResponseEntity.ok(ApiResponse.success(goals));
+        List<GoalResponse> responses = goals.stream().map(GoalResponse::fromEntity).toList();
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 }

@@ -5,6 +5,7 @@ import com.pbfm.entity.User;
 import com.pbfm.exception.ResourceNotFoundException;
 import com.pbfm.repository.AccountRepository;
 import com.pbfm.repository.UserRepository;
+import com.pbfm.response.AccountResponse;
 import com.pbfm.response.ApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +32,7 @@ public class AccountController {
 
     @PostMapping
     @Operation(summary = "Create a new bank account")
-    public ResponseEntity<ApiResponse<Account>> createAccount(@Valid @RequestBody Account request) {
+    public ResponseEntity<ApiResponse<AccountResponse>> createAccount(@Valid @RequestBody Account request) {
         log.info("Received request to create account for user ID: {}, type: {}", request.getUserId(), request.getAccountType());
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
@@ -41,24 +42,24 @@ public class AccountController {
 
         log.info("Account created successfully with ID: {}", savedAccount.getAccountId());
         return new ResponseEntity<>(
-                ApiResponse.success(savedAccount, "Account created successfully"),
+                ApiResponse.success(AccountResponse.fromEntity(savedAccount), "Account created successfully"),
                 HttpStatus.CREATED
         );
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get account by ID")
-    public ResponseEntity<ApiResponse<Account>> getAccountById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<AccountResponse>> getAccountById(@PathVariable UUID id) {
         log.info("Fetching account by ID: {}", id);
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Account not found with id: " + id));
 
-        return ResponseEntity.ok(ApiResponse.success(account));
+        return ResponseEntity.ok(ApiResponse.success(AccountResponse.fromEntity(account)));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing account")
-    public ResponseEntity<ApiResponse<Account>> updateAccount(
+    public ResponseEntity<ApiResponse<AccountResponse>> updateAccount(
             @PathVariable UUID id,
             @Valid @RequestBody Account request) {
         log.info("Updating account with ID: {}", id);
@@ -71,7 +72,7 @@ public class AccountController {
         Account updatedAccount = accountRepository.save(account);
 
         log.info("Account with ID: {} updated successfully", id);
-        return ResponseEntity.ok(ApiResponse.success(updatedAccount, "Account updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(AccountResponse.fromEntity(updatedAccount), "Account updated successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -88,14 +89,15 @@ public class AccountController {
 
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get all accounts for a specific user")
-    public ResponseEntity<ApiResponse<List<Account>>> getAccountsByUserId(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<List<AccountResponse>>> getAccountsByUserId(@PathVariable UUID userId) {
         log.info("Fetching accounts for user ID: {}", userId);
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
         List<Account> accounts = accountRepository.findByUser_UserId(userId);
         log.info("Found {} accounts for user ID: {}", accounts.size(), userId);
-        return ResponseEntity.ok(ApiResponse.success(accounts));
+        List<AccountResponse> responses = accounts.stream().map(AccountResponse::fromEntity).toList();
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
     @GetMapping("/user/{userId}/net-worth")

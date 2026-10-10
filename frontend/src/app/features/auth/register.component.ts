@@ -145,8 +145,12 @@ export class RegisterComponent {
     this.errorMessage = '';
     this.successMessage = '';
 
+    const formVals = this.registerForm.value;
     const registerPayload = {
-      ...this.registerForm.value,
+      name: (formVals.name || '').trim(),
+      email: (formVals.email || '').trim(),
+      password: formVals.password,
+      passwordHash: formVals.password,
       currencyPreference: 'INR'
     };
 

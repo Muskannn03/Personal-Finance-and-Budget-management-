@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -241,6 +241,7 @@ export class SettingsComponent implements OnInit {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private userService = inject(UserService);
+  private cdr = inject(ChangeDetectorRef);
 
   currentTab = 'profile';
   loading = true;
@@ -264,16 +265,15 @@ export class SettingsComponent implements OnInit {
 
   toggleGuide() {
     this.showGuide = !this.showGuide;
+    this.cdr.markForCheck();
   }
 
   ngOnInit() {
-    const session = this.authService.currentUser();
-    if (session) {
-      this.userId = session.userId;
-      this.activeToken = this.authService.getToken() || '';
+    this.userId = this.authService.getUserId();
+    this.activeToken = this.authService.getToken() || '';
+    if (this.userId) {
       this.loadSettings();
     } else {
-      // Offline fallback
       this.applyFallbackUser();
     }
   }
@@ -293,10 +293,12 @@ export class SettingsComponent implements OnInit {
       currencyPreference: this.userData.currencyPreference
     });
     this.loading = false;
+    this.cdr.markForCheck();
   }
 
   loadSettings() {
     this.loading = true;
+    this.cdr.markForCheck();
     this.userService.getUserById(this.userId).subscribe({
       next: (res: any) => {
         if (res && res.data) {
@@ -312,10 +314,13 @@ export class SettingsComponent implements OnInit {
           this.applyFallbackUser();
         }
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err: any) => {
         console.warn('API error loading settings, applying fallback user', err);
         this.applyFallbackUser();
+        this.loading = false;
+        this.cdr.markForCheck();
       }
     });
   }
@@ -346,6 +351,7 @@ export class SettingsComponent implements OnInit {
           session.name = payload.name;
           localStorage.setItem('user_session', JSON.stringify(session));
         }
+        this.cdr.markForCheck();
       },
       error: (err: any) => {
         this.submitting = false;
@@ -358,6 +364,7 @@ export class SettingsComponent implements OnInit {
           session.name = payload.name;
           localStorage.setItem('user_session', JSON.stringify(session));
         }
+        this.cdr.markForCheck();
       }
     });
   }
@@ -375,11 +382,13 @@ export class SettingsComponent implements OnInit {
         this.submitting = false;
         this.alertMessage = 'Currency preference updated successfully!';
         this.alertType = 'success';
+        this.cdr.markForCheck();
       },
       error: (err: any) => {
         this.submitting = false;
         this.alertMessage = 'Currency preference updated successfully! (Local Preference)';
         this.alertType = 'success';
+        this.cdr.markForCheck();
       }
     });
   }

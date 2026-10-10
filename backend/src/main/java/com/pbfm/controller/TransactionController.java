@@ -7,6 +7,7 @@ import com.pbfm.enums.TransactionType;
 import com.pbfm.exception.ResourceNotFoundException;
 import com.pbfm.repository.*;
 import com.pbfm.response.ApiResponse;
+import com.pbfm.response.TransactionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -45,7 +46,7 @@ public class TransactionController {
     @PostMapping
     @Operation(summary = "Record a new transaction")
     @Transactional
-    public ResponseEntity<ApiResponse<Transaction>> createTransaction(@Valid @RequestBody Transaction request) {
+    public ResponseEntity<ApiResponse<TransactionResponse>> createTransaction(@Valid @RequestBody Transaction request) {
         log.info("Recording a new transaction of type {} with amount {} for user ID: {}", request.getType(), request.getAmount(), request.getUserId());
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
@@ -82,25 +83,25 @@ public class TransactionController {
         }
 
         return new ResponseEntity<>(
-                ApiResponse.success(savedTransaction, "Transaction recorded successfully"),
+                ApiResponse.success(TransactionResponse.fromEntity(savedTransaction), "Transaction recorded successfully"),
                 HttpStatus.CREATED
         );
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get transaction by ID")
-    public ResponseEntity<ApiResponse<Transaction>> getTransactionById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<TransactionResponse>> getTransactionById(@PathVariable UUID id) {
         log.info("Fetching transaction by ID: {}", id);
         Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Transaction not found with id: " + id));
 
-        return ResponseEntity.ok(ApiResponse.success(transaction));
+        return ResponseEntity.ok(ApiResponse.success(TransactionResponse.fromEntity(transaction)));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing transaction")
     @Transactional
-    public ResponseEntity<ApiResponse<Transaction>> updateTransaction(
+    public ResponseEntity<ApiResponse<TransactionResponse>> updateTransaction(
             @PathVariable UUID id,
             @Valid @RequestBody Transaction request) {
         log.info("Updating transaction with ID: {}", id);
@@ -132,7 +133,7 @@ public class TransactionController {
             checkAndHandleBudgetBreach(updatedTransaction.getUser(), category, updatedTransaction);
         }
 
-        return ResponseEntity.ok(ApiResponse.success(updatedTransaction, "Transaction updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(TransactionResponse.fromEntity(updatedTransaction), "Transaction updated successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -150,7 +151,7 @@ public class TransactionController {
 
     @GetMapping
     @Operation(summary = "Search and filter transactions pageably")
-    public ResponseEntity<ApiResponse<Page<Transaction>>> getTransactions(
+    public ResponseEntity<ApiResponse<Page<TransactionResponse>>> getTransactions(
             @RequestParam UUID userId,
             @RequestParam(required = false) UUID accountId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
@@ -165,7 +166,8 @@ public class TransactionController {
         Page<Transaction> transactionPage = transactionRepository.findFilteredTransactions(userId, accountId, startDate, endDate, pageable);
         log.info("Found {} transactions in the requested page for user ID: {}", transactionPage.getNumberOfElements(), userId);
 
-        return ResponseEntity.ok(ApiResponse.success(transactionPage));
+        Page<TransactionResponse> responsePage = transactionPage.map(TransactionResponse::fromEntity);
+        return ResponseEntity.ok(ApiResponse.success(responsePage));
     }
 
     private void checkAndHandleBudgetBreach(User user, Category category, Transaction transaction) {
@@ -174,8 +176,12 @@ public class TransactionController {
 
         if (activeBudgetOpt.isPresent()) {
             Budget budget = activeBudgetOpt.get();
-            LocalDateTime start = budget.getStartDate().atStartOfDay();
-            LocalDateTime end = budget.getEndDate().atTime(23, 59, 59);
+            LocalDateTime start = budget.getStartDate() != null 
+                    ? budget.getStartDate().atStartOfDay() 
+                    : LocalDate.now().withDayOfMonth(1).atStartOfDay();
+            LocalDateTime end = budget.getEndDate() != null 
+                    ? budget.getEndDate().atTime(23, 59, 59) 
+                    : LocalDate.now().plusMonths(1).withDayOfMonth(1).minusDays(1).atTime(23, 59, 59);
 
             // Compute total expenses for this category in the current budget range
             BigDecimal currentTotal = transactionRepository.getTotalAmountByCategoryIdAndTypeInDateRange(

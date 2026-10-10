@@ -45,9 +45,9 @@ export class AuthService {
         if (res && res.data) {
           const data: JwtResponse = res.data;
           this.saveSession(data.accessToken, {
-            userId: data.userId,
-            name: data.name,
-            email: data.email,
+            userId: data.userId ? data.userId.trim() : '',
+            name: data.name ? data.name.trim() : '',
+            email: data.email ? data.email.trim() : '',
             role: data.role
           });
         }
@@ -69,6 +69,22 @@ export class AuthService {
   getUserRole(): string | null {
     const user = this.currentUser();
     return user ? user.role : null;
+  }
+
+  getUserId(): string {
+    const user = this.currentUser();
+    if (user && user.userId) return user.userId;
+    try {
+      const sessionStr = localStorage.getItem('user_session');
+      if (sessionStr) {
+        const s = JSON.parse(sessionStr);
+        if (s && s.userId) {
+          this.sessionSignal.set(s);
+          return s.userId;
+        }
+      }
+    } catch (e) {}
+    return '';
   }
 
   private saveSession(token: string, session: UserSession) {

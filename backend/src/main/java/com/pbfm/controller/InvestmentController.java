@@ -8,6 +8,7 @@ import com.pbfm.repository.GoalRepository;
 import com.pbfm.repository.InvestmentRepository;
 import com.pbfm.repository.UserRepository;
 import com.pbfm.response.ApiResponse;
+import com.pbfm.response.InvestmentResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -33,7 +34,7 @@ public class InvestmentController {
 
     @PostMapping
     @Operation(summary = "Record a new investment")
-    public ResponseEntity<ApiResponse<Investment>> createInvestment(@Valid @RequestBody Investment request) {
+    public ResponseEntity<ApiResponse<InvestmentResponse>> createInvestment(@Valid @RequestBody Investment request) {
         log.info("Creating investment of type {} with amount {} for user ID: {}", request.getType(), request.getAmount(), request.getUserId());
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
@@ -50,24 +51,24 @@ public class InvestmentController {
 
         log.info("Investment recorded successfully with ID: {}", savedInvestment.getInvestmentId());
         return new ResponseEntity<>(
-                ApiResponse.success(savedInvestment, "Investment recorded successfully"),
+                ApiResponse.success(InvestmentResponse.fromEntity(savedInvestment), "Investment recorded successfully"),
                 HttpStatus.CREATED
         );
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get investment by ID")
-    public ResponseEntity<ApiResponse<Investment>> getInvestmentById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<InvestmentResponse>> getInvestmentById(@PathVariable UUID id) {
         log.info("Fetching investment by ID: {}", id);
         Investment investment = investmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Investment not found with id: " + id));
 
-        return ResponseEntity.ok(ApiResponse.success(investment));
+        return ResponseEntity.ok(ApiResponse.success(InvestmentResponse.fromEntity(investment)));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update an existing investment")
-    public ResponseEntity<ApiResponse<Investment>> updateInvestment(
+    public ResponseEntity<ApiResponse<InvestmentResponse>> updateInvestment(
             @PathVariable UUID id,
             @Valid @RequestBody Investment request) {
         log.info("Updating investment with ID: {}", id);
@@ -90,7 +91,7 @@ public class InvestmentController {
         Investment updatedInvestment = investmentRepository.save(investment);
 
         log.info("Investment with ID: {} updated successfully", id);
-        return ResponseEntity.ok(ApiResponse.success(updatedInvestment, "Investment updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(InvestmentResponse.fromEntity(updatedInvestment), "Investment updated successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -105,27 +106,47 @@ public class InvestmentController {
         return ResponseEntity.ok(ApiResponse.success(null, "Investment deleted successfully"));
     }
 
+    @GetMapping
+    @Operation(summary = "Get all investments (optionally filter by userId)")
+    public ResponseEntity<ApiResponse<List<InvestmentResponse>>> getInvestments(@RequestParam(required = false) UUID userId) {
+        if (userId != null) {
+            log.info("Fetching investments for user ID: {}", userId);
+            if (!userRepository.existsById(userId)) {
+                throw new ResourceNotFoundException("User not found with id: " + userId);
+            }
+            List<InvestmentResponse> responses = investmentRepository.findByUser_UserId(userId).stream()
+                    .map(InvestmentResponse::fromEntity).toList();
+            return ResponseEntity.ok(ApiResponse.success(responses));
+        }
+        log.info("Fetching all investments");
+        List<InvestmentResponse> responses = investmentRepository.findAll().stream()
+                .map(InvestmentResponse::fromEntity).toList();
+        return ResponseEntity.ok(ApiResponse.success(responses));
+    }
+
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get all investments for a user")
-    public ResponseEntity<ApiResponse<List<Investment>>> getInvestmentsByUserId(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<List<InvestmentResponse>>> getInvestmentsByUserId(@PathVariable UUID userId) {
         log.info("Fetching all investments for user ID: {}", userId);
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
         List<Investment> investments = investmentRepository.findByUser_UserId(userId);
         log.info("Found {} investments for user ID: {}", investments.size(), userId);
-        return ResponseEntity.ok(ApiResponse.success(investments));
+        List<InvestmentResponse> responses = investments.stream().map(InvestmentResponse::fromEntity).toList();
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 
     @GetMapping("/goal/{goalId}")
     @Operation(summary = "Get all investments linked to a goal")
-    public ResponseEntity<ApiResponse<List<Investment>>> getInvestmentsByGoalId(@PathVariable UUID goalId) {
+    public ResponseEntity<ApiResponse<List<InvestmentResponse>>> getInvestmentsByGoalId(@PathVariable UUID goalId) {
         log.info("Fetching all investments linked to goal ID: {}", goalId);
         if (!goalRepository.existsById(goalId)) {
             throw new ResourceNotFoundException("Goal not found with id: " + goalId);
         }
         List<Investment> investments = investmentRepository.findByGoal_GoalId(goalId);
         log.info("Found {} investments linked to goal ID: {}", investments.size(), goalId);
-        return ResponseEntity.ok(ApiResponse.success(investments));
+        List<InvestmentResponse> responses = investments.stream().map(InvestmentResponse::fromEntity).toList();
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 }

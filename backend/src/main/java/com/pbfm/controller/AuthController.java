@@ -1,11 +1,18 @@
 package com.pbfm.controller;
 
+import com.pbfm.entity.Account;
+import com.pbfm.entity.Category;
 import com.pbfm.entity.User;
+import com.pbfm.enums.AccountType;
+import com.pbfm.enums.TransactionType;
 import com.pbfm.exception.DuplicateResourceException;
 import com.pbfm.exception.ResourceNotFoundException;
 import com.pbfm.exception.UnauthorizedException;
+import com.pbfm.repository.AccountRepository;
+import com.pbfm.repository.CategoryRepository;
 import com.pbfm.repository.UserRepository;
 import com.pbfm.response.ApiResponse;
+import com.pbfm.response.UserResponse;
 import com.pbfm.security.JwtTokenProvider;
 import com.pbfm.security.UserPrincipal;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,9 +31,11 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @RestController
@@ -38,35 +47,109 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
+    private final AccountRepository accountRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider tokenProvider;
 
     @PostMapping("/register")
     @Operation(summary = "Register a new user account")
-    public ResponseEntity<ApiResponse<User>> registerUser(@Valid @RequestBody User request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new DuplicateResourceException("Email already exists: " + request.getEmail());
+    @Transactional
+    public ResponseEntity<ApiResponse<UserResponse>> registerUser(@RequestBody User request) {
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new IllegalArgumentException("Email address is required");
+        }
+        if (request.getName() == null || request.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("Full name is required");
         }
 
-        // The request's password is map to passwordHash in the client JSON representation
-        request.setPasswordHash(passwordEncoder.encode(request.getPasswordHash()));
-        request.setRole("USER"); // Default role is standard USER
+        String email = request.getEmail().trim().toLowerCase();
+        if (userRepository.existsByEmail(email)) {
+            throw new DuplicateResourceException("Email already exists: " + email);
+        }
+
+        String rawPassword = request.getPasswordHash() != null && !request.getPasswordHash().trim().isEmpty()
+                ? request.getPasswordHash()
+                : request.getPassword();
+
+        if (rawPassword == null || rawPassword.trim().isEmpty()) {
+            throw new IllegalArgumentException("Password is required");
+        }
+
+        request.setEmail(email);
+        request.setName(request.getName().trim());
+        request.setPasswordHash(passwordEncoder.encode(rawPassword));
+        request.setRole("USER");
+        if (request.getCurrencyPreference() == null || request.getCurrencyPreference().trim().isEmpty()) {
+            request.setCurrencyPreference("INR");
+        }
+
         User savedUser = userRepository.save(request);
 
+        // Provision starter accounts and categories so user can manage finances immediately
+        initializeUserDefaults(savedUser);
+
         return new ResponseEntity<>(
-                ApiResponse.success(savedUser, "User registered successfully"),
+                ApiResponse.success(UserResponse.fromEntity(savedUser), "User registered successfully"),
                 HttpStatus.CREATED
         );
+    }
+
+    private void initializeUserDefaults(User user) {
+        try {
+            Account savingsAccount = Account.builder()
+                    .user(user)
+                    .accountName("Primary Savings")
+                    .accountType(AccountType.SAVINGS)
+                    .balance(BigDecimal.ZERO)
+                    .build();
+            accountRepository.save(savingsAccount);
+
+            Account cashAccount = Account.builder()
+                    .user(user)
+                    .accountName("Cash Wallet")
+                    .accountType(AccountType.CASH)
+                    .balance(BigDecimal.ZERO)
+                    .build();
+            accountRepository.save(cashAccount);
+
+            String[][] defaultCats = {
+                    {"Salary", "INCOME"},
+                    {"Freelance", "INCOME"},
+                    {"Investments", "INCOME"},
+                    {"Other Income", "INCOME"},
+                    {"Food & Dining", "EXPENSE"},
+                    {"Groceries", "EXPENSE"},
+                    {"Housing & Rent", "EXPENSE"},
+                    {"Utilities & Bills", "EXPENSE"},
+                    {"Shopping", "EXPENSE"},
+                    {"Transportation", "EXPENSE"},
+                    {"Entertainment", "EXPENSE"},
+                    {"Healthcare", "EXPENSE"}
+            };
+
+            for (String[] cat : defaultCats) {
+                Category category = Category.builder()
+                        .user(user)
+                        .categoryName(cat[0])
+                        .type(TransactionType.valueOf(cat[1]))
+                        .build();
+                categoryRepository.save(category);
+            }
+        } catch (Exception e) {
+            log.error("Failed to seed initial user defaults for user {}: ", user.getUserId(), e);
+        }
     }
 
     @PostMapping("/login")
     @Operation(summary = "Authenticate user and retrieve access token")
     public ResponseEntity<ApiResponse<JwtResponse>> authenticateUser(@Valid @RequestBody LoginRequest request) {
-        log.info("Attempting login authentication for user email: {}", request.getEmail());
+        String cleanEmail = request.getEmail() != null ? request.getEmail().trim().toLowerCase() : "";
+        log.info("Attempting login authentication for user email: {}", cleanEmail);
 
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
+                        cleanEmail,
                         request.getPassword()
                     )
         );
@@ -95,7 +178,7 @@ public class AuthController {
             String jwt = bearerToken.substring(7);
             if (tokenProvider.validateToken(jwt)) {
                 String email = tokenProvider.getUsernameFromJwt(jwt);
-                User user = userRepository.findByEmail(email)
+                User user = userRepository.findByEmailIgnoreCase(email != null ? email.trim() : "")
                         .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
                 String newToken = tokenProvider.generateTokenFromUsername(email);

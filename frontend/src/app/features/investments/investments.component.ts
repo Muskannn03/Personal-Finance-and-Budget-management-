@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -16,14 +16,11 @@ import { GoalService } from '../../core/services/goal.service';
         <div>
           <div class="flex items-center gap-3">
             <h1 class="text-3xl font-extrabold tracking-tight text-text-main">Investment Portfolio</h1>
-            <span *ngIf="isDemoMode" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-primary-light text-brand-primary-dark border border-brand-primary/30">
-              Demo Values Active
-            </span>
           </div>
           <p class="text-text-sub text-sm mt-1">Track and manage your asset allocations and security performance.</p>
         </div>
 
-        <!-- Controls: Demo Toggle & Guide Pills -->
+        <!-- Controls: Guide Pill & Record Investment -->
         <div class="flex flex-wrap items-center gap-2">
           <button 
             (click)="toggleGuide()" 
@@ -33,23 +30,6 @@ import { GoalService } from '../../core/services/goal.service';
             <span>💡</span>
             <span>{{ showGuide ? 'Hide Guide' : 'What is Where?' }}</span>
           </button>
-
-          <div class="flex items-center bg-white border border-brand-border rounded-2xl p-1 shadow-sm">
-            <button 
-              (click)="setMode(true)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Sample Data
-            </button>
-            <button 
-              (click)="setMode(false)" 
-              class="text-xs font-semibold px-3 py-1.5 rounded-xl transition-all duration-150"
-              [ngClass]="!isDemoMode ? 'bg-brand-primary-light text-brand-primary-dark font-bold' : 'text-text-sub hover:text-text-main'"
-            >
-              Live Data
-            </button>
-          </div>
 
           <button 
             (click)="openAddModal()" 
@@ -69,6 +49,11 @@ import { GoalService } from '../../core/services/goal.service';
         <div>
           <span class="font-bold">Educational Guidance Only:</span> All portfolio indicators, asset allocations, and security logs are for recording and educational purposes only.
         </div>
+      </div>
+
+      <!-- Loading Skeleton -->
+      <div *ngIf="loading" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-pulse">
+        <div class="h-28 bg-white border border-brand-border rounded-2xl" *ngFor="let i of [1, 2, 3, 4]"></div>
       </div>
 
       <!-- Investment Portfolio Metrics Cards -->
@@ -104,8 +89,8 @@ import { GoalService } from '../../core/services/goal.service';
             📍 Absolute Growth %
           </div>
           <span class="text-[10px] font-bold text-text-sub uppercase tracking-wider">Abs. Returns (%)</span>
-          <h3 class="text-2xl font-black mt-1 text-emerald-600">
-            +{{ getAbsoluteReturnsPct() | number:'1.2-2' }}%
+          <h3 class="text-2xl font-black mt-1" [class.text-emerald-600]="getAbsoluteReturnsPct() >= 0" [class.text-red-500]="getAbsoluteReturnsPct() < 0">
+            {{ getAbsoluteReturnsPct() > 0 ? '+' : '' }}{{ getAbsoluteReturnsPct() | number:'1.2-2' }}%
           </h3>
         </div>
       </div>
@@ -166,7 +151,7 @@ import { GoalService } from '../../core/services/goal.service';
                   <span class="font-extrabold text-sm block">₹{{ inv.currentValue | number:'1.2-2' }}</span>
                   <span class="text-xs font-bold" [class.text-emerald-600]="inv.currentValue >= inv.amount" [class.text-red-500]="inv.currentValue < inv.amount">
                     {{ inv.currentValue >= inv.amount ? '+' : '' }}₹{{ (inv.currentValue - inv.amount) | number:'1.2-2' }}
-                    ({{ ((inv.currentValue - inv.amount) / inv.amount * 100) | number:'1.1-1' }}%)
+                    ({{ inv.amount > 0 ? (((inv.currentValue - inv.amount) / inv.amount * 100) | number:'1.1-1') : '0.0' }}%)
                   </span>
                   <div class="pt-1">
                     <button (click)="deleteInvestment(inv.investmentId)" class="text-[10px] text-red-500 hover:text-red-700 font-bold">Remove</button>
@@ -302,66 +287,19 @@ export class InvestmentsComponent implements OnInit {
   private authService = inject(AuthService);
   private investmentService = inject(InvestmentService);
   private goalService = inject(GoalService);
+  private cdr = inject(ChangeDetectorRef);
 
   investments: any[] = [];
   goalsList: any[] = [];
-  totalInvested = 155000;
-  totalCurrentVal = 182400;
+  totalInvested = 0;
+  totalCurrentVal = 0;
 
-  loading = false;
-  isDemoMode = true;
+  loading = true;
   showGuide = true;
 
   showModal = false;
   formSubmitting = false;
   userId = '';
-
-  liveInvestments: any[] = [];
-  liveTotalInvested = 0;
-  liveTotalCurrentVal = 0;
-
-  readonly demoInvestments = [
-    {
-      investmentId: 'inv-1',
-      notes: 'Nifty 50 Index Mutual Fund (Direct Growth)',
-      type: 'MUTUAL_FUND',
-      amount: 50000.00,
-      currentValue: 61200.00,
-      startDate: '2025-01-10',
-      maturityDate: '2030-01-10',
-      goal: { goalName: 'Emergency Fund' }
-    },
-    {
-      investmentId: 'inv-2',
-      notes: 'Parag Parikh Flexi Cap Fund (SIP)',
-      type: 'MUTUAL_FUND',
-      amount: 40000.00,
-      currentValue: 48500.00,
-      startDate: '2025-03-15',
-      maturityDate: '2029-03-15',
-      goal: { goalName: 'MacBook Pro M3' }
-    },
-    {
-      investmentId: 'inv-3',
-      notes: 'HDFC Bank 3-Year Fixed Deposit (7.25% p.a.)',
-      type: 'FIXED_DEPOSIT',
-      amount: 35000.00,
-      currentValue: 38200.00,
-      startDate: '2024-08-20',
-      maturityDate: '2027-08-20',
-      goal: null
-    },
-    {
-      investmentId: 'inv-4',
-      notes: 'TCS & Infosys Bluechip Equity Stocks',
-      type: 'STOCKS',
-      amount: 30000.00,
-      currentValue: 34500.00,
-      startDate: '2025-06-01',
-      maturityDate: '2032-06-01',
-      goal: null
-    }
-  ];
 
   investmentForm: FormGroup = this.fb.group({
     notes: ['', [Validators.required]],
@@ -374,69 +312,73 @@ export class InvestmentsComponent implements OnInit {
   });
 
   ngOnInit() {
-    const session = this.authService.currentUser();
-    this.userId = session ? session.userId : 'demo-user-id';
-
-    this.applyDemoData();
-
-    if (session) {
+    this.userId = this.authService.getUserId();
+    if (this.userId) {
       this.loadInvestments();
       this.loadGoals();
+    } else {
+      this.loading = false;
+      this.cdr.markForCheck();
     }
   }
 
   toggleGuide() {
     this.showGuide = !this.showGuide;
-  }
-
-  setMode(demo: boolean) {
-    this.isDemoMode = demo;
-    if (demo) {
-      this.applyDemoData();
-    } else {
-      this.applyLiveData();
-    }
-  }
-
-  private applyDemoData() {
-    this.investments = [...this.demoInvestments];
-    this.totalInvested = 155000;
-    this.totalCurrentVal = 182400;
-    this.loading = false;
-  }
-
-  private applyLiveData() {
-    this.investments = [...this.liveInvestments];
-    this.totalInvested = this.liveTotalInvested;
-    this.totalCurrentVal = this.liveTotalCurrentVal;
-    this.loading = false;
+    this.cdr.markForCheck();
   }
 
   loadInvestments() {
+    if (!this.userId) {
+      this.investments = [];
+      this.totalInvested = 0;
+      this.totalCurrentVal = 0;
+      this.loading = false;
+      this.cdr.markForCheck();
+      return;
+    }
+    this.loading = true;
+    this.cdr.markForCheck();
+
     this.investmentService.getInvestments(this.userId).subscribe({
       next: (res: any) => {
+        this.loading = false;
         if (res && res.data) {
-          this.liveInvestments = res.data;
-          this.liveTotalInvested = 0;
-          this.liveTotalCurrentVal = 0;
-          this.liveInvestments.forEach(inv => {
-            this.liveTotalInvested += inv.amount || 0;
-            this.liveTotalCurrentVal += inv.currentValue || 0;
+          this.investments = res.data;
+          this.totalInvested = 0;
+          this.totalCurrentVal = 0;
+          this.investments.forEach(inv => {
+            this.totalInvested += inv.amount || 0;
+            this.totalCurrentVal += inv.currentValue || 0;
           });
-          if (!this.isDemoMode) {
-            this.applyLiveData();
-          }
+        } else {
+          this.investments = [];
+          this.totalInvested = 0;
+          this.totalCurrentVal = 0;
         }
+        this.cdr.markForCheck();
       },
-      error: (err) => console.warn('Could not load live investments', err)
+      error: (err) => {
+        this.loading = false;
+        this.investments = [];
+        this.cdr.markForCheck();
+        console.warn('Could not load live investments', err);
+      }
     });
   }
 
   loadGoals() {
+    if (!this.userId) {
+      this.goalsList = [];
+      return;
+    }
     this.goalService.getGoals(this.userId).subscribe({
       next: (res: any) => {
-        if (res && res.data) this.goalsList = res.data;
-      }
+        if (res && res.data) {
+          this.goalsList = res.data;
+          this.cdr.markForCheck();
+        }
+      },
+      error: (err) => console.warn('Could not load goals for investments', err)
     });
   }
 
@@ -458,7 +400,7 @@ export class InvestmentsComponent implements OnInit {
       list.push({
         type: key,
         total: val,
-        percentage: (val / totalVal) * 100
+        percentage: this.totalCurrentVal > 0 ? (val / totalVal) * 100 : 0
       });
     });
     return list;
@@ -487,25 +429,6 @@ export class InvestmentsComponent implements OnInit {
     this.formSubmitting = true;
     const formVal = this.investmentForm.value;
 
-    if (this.isDemoMode) {
-      const newInv = {
-        investmentId: 'demo-inv-' + Date.now(),
-        notes: formVal.notes,
-        type: formVal.type,
-        amount: parseFloat(formVal.amount),
-        currentValue: parseFloat(formVal.currentValue),
-        startDate: formVal.startDate,
-        maturityDate: formVal.maturityDate,
-        goal: formVal.goalId ? this.goalsList.find(g => g.goalId === formVal.goalId) : null
-      };
-      this.investments.push(newInv);
-      this.totalInvested += newInv.amount;
-      this.totalCurrentVal += newInv.currentValue;
-      this.formSubmitting = false;
-      this.closeModal();
-      return;
-    }
-
     const payload = {
       ...formVal,
       userId: this.userId
@@ -526,15 +449,6 @@ export class InvestmentsComponent implements OnInit {
 
   deleteInvestment(id: string) {
     if (confirm('Are you sure you want to remove this investment asset?')) {
-      if (this.isDemoMode) {
-        const item = this.investments.find(i => i.investmentId === id);
-        if (item) {
-          this.totalInvested -= item.amount;
-          this.totalCurrentVal -= item.currentValue;
-        }
-        this.investments = this.investments.filter(i => i.investmentId !== id);
-        return;
-      }
       this.investmentService.deleteInvestment(id).subscribe({
         next: () => this.loadInvestments(),
         error: (err) => alert(err?.error?.message || 'Failed to delete investment.')

@@ -9,6 +9,7 @@ import com.pbfm.repository.AccountRepository;
 import com.pbfm.repository.RewardRepository;
 import com.pbfm.repository.UserRepository;
 import com.pbfm.response.ApiResponse;
+import com.pbfm.response.RewardResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -35,7 +36,7 @@ public class RewardController {
 
     @PostMapping
     @Operation(summary = "Log/Create a new reward manually")
-    public ResponseEntity<ApiResponse<Reward>> createReward(@Valid @RequestBody Reward request) {
+    public ResponseEntity<ApiResponse<RewardResponse>> createReward(@Valid @RequestBody Reward request) {
         log.info("Creating a new reward of type {} with amount {} for user ID: {}", request.getRewardType(), request.getAmount(), request.getUserId());
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
@@ -53,24 +54,24 @@ public class RewardController {
 
         log.info("Reward recorded successfully with ID: {}", savedReward.getRewardId());
         return new ResponseEntity<>(
-                ApiResponse.success(savedReward, "Reward recorded successfully"),
+                ApiResponse.success(RewardResponse.fromEntity(savedReward), "Reward recorded successfully"),
                 HttpStatus.CREATED
         );
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get reward by ID")
-    public ResponseEntity<ApiResponse<Reward>> getRewardById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<RewardResponse>> getRewardById(@PathVariable UUID id) {
         log.info("Fetching reward by ID: {}", id);
         Reward reward = rewardRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Reward not found with id: " + id));
 
-        return ResponseEntity.ok(ApiResponse.success(reward));
+        return ResponseEntity.ok(ApiResponse.success(RewardResponse.fromEntity(reward)));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update a reward (Redeem or expire)")
-    public ResponseEntity<ApiResponse<Reward>> updateReward(
+    public ResponseEntity<ApiResponse<RewardResponse>> updateReward(
             @PathVariable UUID id,
             @Valid @RequestBody Reward request) {
         log.info("Updating reward with ID: {} to status: {}", id, request.getStatus());
@@ -95,7 +96,7 @@ public class RewardController {
 
         Reward updatedReward = rewardRepository.save(reward);
         log.info("Reward with ID: {} updated successfully", id);
-        return ResponseEntity.ok(ApiResponse.success(updatedReward, "Reward updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(RewardResponse.fromEntity(updatedReward), "Reward updated successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -112,13 +113,14 @@ public class RewardController {
 
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get all rewards for a user")
-    public ResponseEntity<ApiResponse<List<Reward>>> getRewardsByUserId(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<List<RewardResponse>>> getRewardsByUserId(@PathVariable UUID userId) {
         log.info("Fetching all rewards for user ID: {}", userId);
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("User not found with id: " + userId);
         }
         List<Reward> rewards = rewardRepository.findByUser_UserId(userId);
         log.info("Found {} rewards for user ID: {}", rewards.size(), userId);
-        return ResponseEntity.ok(ApiResponse.success(rewards));
+        List<RewardResponse> responses = rewards.stream().map(RewardResponse::fromEntity).toList();
+        return ResponseEntity.ok(ApiResponse.success(responses));
     }
 }

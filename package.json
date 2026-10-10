@@ -1,0 +1,11 @@
+{
+  "name": "pfbm-root",
+  "version": "1.0.0",
+  "description": "Personal Finance and Budget Management",
+  "scripts": {
+    "start": "powershell -ExecutionPolicy Bypass -File ./run-all.ps1",
+    "start:frontend": "npm start --prefix frontend",
+    "start:backend": "cd backend && mvn spring-boot:run",
+    "start:all": "powershell -ExecutionPolicy Bypass -File ./run-all.ps1"
+  }
+}

@@ -7,6 +7,7 @@ import com.pbfm.exception.ResourceNotFoundException;
 import com.pbfm.repository.RiskProfileRepository;
 import com.pbfm.repository.UserRepository;
 import com.pbfm.response.ApiResponse;
+import com.pbfm.response.RiskProfileResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -30,7 +31,7 @@ public class RiskProfileController {
 
     @PostMapping
     @Operation(summary = "Create user risk profile (1:1 constraint)")
-    public ResponseEntity<ApiResponse<RiskProfile>> createRiskProfile(@Valid @RequestBody RiskProfile request) {
+    public ResponseEntity<ApiResponse<RiskProfileResponse>> createRiskProfile(@Valid @RequestBody RiskProfile request) {
         log.info("Creating risk profile for user ID: {} with score: {}", request.getUserId(), request.getRiskScore());
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + request.getUserId()));
@@ -45,24 +46,24 @@ public class RiskProfileController {
 
         log.info("Risk profile created successfully with ID: {}", savedProfile.getProfileId());
         return new ResponseEntity<>(
-                ApiResponse.success(savedProfile, "Risk profile created successfully"),
+                ApiResponse.success(RiskProfileResponse.fromEntity(savedProfile), "Risk profile created successfully"),
                 HttpStatus.CREATED
         );
     }
 
     @GetMapping("/{id}")
     @Operation(summary = "Get risk profile by ID")
-    public ResponseEntity<ApiResponse<RiskProfile>> getRiskProfileById(@PathVariable UUID id) {
+    public ResponseEntity<ApiResponse<RiskProfileResponse>> getRiskProfileById(@PathVariable UUID id) {
         log.info("Fetching risk profile by ID: {}", id);
         RiskProfile riskProfile = riskProfileRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Risk profile not found with id: " + id));
 
-        return ResponseEntity.ok(ApiResponse.success(riskProfile));
+        return ResponseEntity.ok(ApiResponse.success(RiskProfileResponse.fromEntity(riskProfile)));
     }
 
     @PutMapping("/{id}")
     @Operation(summary = "Update risk profile details")
-    public ResponseEntity<ApiResponse<RiskProfile>> updateRiskProfile(
+    public ResponseEntity<ApiResponse<RiskProfileResponse>> updateRiskProfile(
             @PathVariable UUID id,
             @Valid @RequestBody RiskProfile request) {
         log.info("Updating risk profile with ID: {}", id);
@@ -74,7 +75,7 @@ public class RiskProfileController {
         RiskProfile updatedProfile = riskProfileRepository.save(riskProfile);
 
         log.info("Risk profile with ID: {} updated successfully", id);
-        return ResponseEntity.ok(ApiResponse.success(updatedProfile, "Risk profile updated successfully"));
+        return ResponseEntity.ok(ApiResponse.success(RiskProfileResponse.fromEntity(updatedProfile), "Risk profile updated successfully"));
     }
 
     @DeleteMapping("/{id}")
@@ -91,11 +92,11 @@ public class RiskProfileController {
 
     @GetMapping("/user/{userId}")
     @Operation(summary = "Get risk profile for a specific user")
-    public ResponseEntity<ApiResponse<RiskProfile>> getRiskProfileByUserId(@PathVariable UUID userId) {
+    public ResponseEntity<ApiResponse<RiskProfileResponse>> getRiskProfileByUserId(@PathVariable UUID userId) {
         log.info("Fetching risk profile for user ID: {}", userId);
         RiskProfile riskProfile = riskProfileRepository.findByUser_UserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Risk profile not found for user: " + userId));
 
-        return ResponseEntity.ok(ApiResponse.success(riskProfile));
+        return ResponseEntity.ok(ApiResponse.success(RiskProfileResponse.fromEntity(riskProfile)));
     }
 }

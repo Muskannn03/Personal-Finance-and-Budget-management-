@@ -1,0 +1,478 @@
+{
+  "info": {
+    "_postman_id": "c1f77e48-9362-4f3c-83b6-pfbm-collection",
+    "name": "PFBM API Collection (Personal Finance & Budget)",
+    "description": "Comprehensive Postman collection for Personal Finance & Budget Management System API (v1) with automated JWT token handling and entity response structures.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Login (Sets JWT Token Automatically)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var json = pm.response.json();",
+                  "    if (json.data && json.data.accessToken) {",
+                  "        pm.collectionVariables.set('token', json.data.accessToken);",
+                  "        pm.collectionVariables.set('userId', json.data.userId);",
+                  "        console.log('Token and UserId captured successfully!');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"kaprimuskan6@gmail.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Register New User",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Password@123\",\n  \"currencyPreference\": \"INR\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/refresh",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "refresh"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Accounts (Wallets)",
+      "item": [
+        {
+          "name": "Get User Accounts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "user", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Total Net Worth",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/accounts/user/{{userId}}/net-worth",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts", "user", "{{userId}}", "net-worth"]
+            }
+          }
+        },
+        {
+          "name": "Create Account",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"accountName\": \"SBI Salary Account\",\n  \"accountType\": \"SAVINGS\",\n  \"balance\": 25000.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/accounts",
+              "host": ["{{baseUrl}}"],
+              "path": ["accounts"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Transactions",
+      "item": [
+        {
+          "name": "Get Filtered Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions?userId={{userId}}&page=0&size=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"accountId\": \"b0000000-0000-0000-0000-000000000001\",\n  \"categoryId\": \"c0000000-0000-0000-0000-000000000003\",\n  \"amount\": 1250.00,\n  \"type\": \"EXPENSE\",\n  \"description\": \"Weekly Supermarket Grocery\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Budgets",
+      "item": [
+        {
+          "name": "Get User Budgets",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/budgets/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["budgets", "user", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Set New Budget",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"categoryId\": \"c0000000-0000-0000-0000-000000000004\",\n  \"limitAmount\": 8000.00,\n  \"period\": \"MONTHLY\",\n  \"startDate\": \"2026-10-01\",\n  \"endDate\": \"2026-10-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/budgets",
+              "host": ["{{baseUrl}}"],
+              "path": ["budgets"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Categories",
+      "item": [
+        {
+          "name": "Get User Categories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/categories/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories", "user", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"categoryName\": \"Books & Learning\",\n  \"type\": \"EXPENSE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["categories"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Goals",
+      "item": [
+        {
+          "name": "Get User Goals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/goals/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["goals", "user", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Goal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"goalName\": \"New Smartphone\",\n  \"targetAmount\": 45000.00,\n  \"targetDate\": \"2027-03-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["goals"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Investments",
+      "item": [
+        {
+          "name": "Get User Investments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/investments/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["investments", "user", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Record Investment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"goalId\": \"e0000000-0000-0000-0000-000000000001\",\n  \"type\": \"MUTUAL_FUND\",\n  \"amount\": 5000.00,\n  \"startDate\": \"2026-10-01\",\n  \"maturityDate\": \"2029-10-01\",\n  \"currentValue\": 5150.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/investments",
+              "host": ["{{baseUrl}}"],
+              "path": ["investments"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Reminders",
+      "item": [
+        {
+          "name": "Get User Reminders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reminders/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reminders", "user", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Due Reminders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reminders/due",
+              "host": ["{{baseUrl}}"],
+              "path": ["reminders", "due"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Rewards",
+      "item": [
+        {
+          "name": "Get User Rewards",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/rewards/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["rewards", "user", "{{userId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Risk Profiles",
+      "item": [
+        {
+          "name": "Get User Risk Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/risk-profiles/user/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["risk-profiles", "user", "{{userId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Reports & Analytics",
+      "item": [
+        {
+          "name": "Get Dashboard Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/dashboard?userId={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "dashboard"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Monthly Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reports/monthly-summary?userId={{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["reports", "monthly-summary"],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "{{userId}}"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "e3952bb0-b74a-4d7a-8f5b-1662fb1655b3",
+      "type": "string"
+    }
+  ]
+}

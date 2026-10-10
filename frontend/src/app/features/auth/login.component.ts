@@ -49,6 +49,14 @@ import { AuthService } from '../../core/services/auth.service';
             </p>
           </div>
 
+          <!-- Success Alert -->
+          <div *ngIf="successMessage" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{{ successMessage }}</span>
+          </div>
+
           <!-- Error Alert -->
           <div *ngIf="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -96,15 +104,21 @@ import { AuthService } from '../../core/services/auth.service';
             </button>
           </form>
 
-          <!-- Mock account bypass for testing convenience -->
-          <div class="pt-6 border-t border-brand-border text-center">
-            <p class="text-xs text-text-sub mb-3">Want to preview the app quickly without a database account?</p>
+          <!-- One-click Demo / Seed Account Login -->
+          <div class="pt-6 border-t border-brand-border text-center space-y-2">
+            <p class="text-xs text-text-sub">Quick login with pre-loaded database seed account:</p>
             <button 
-              (click)="proceedWithMock()" 
-              class="w-full py-2.5 px-4 bg-brand-primary-light hover:bg-brand-primary text-brand-primary-dark hover:text-white text-xs font-semibold rounded-2xl transition-all duration-200 focus:outline-none border border-brand-primary"
+              type="button"
+              (click)="proceedWithSeedAccount()" 
+              [disabled]="loading"
+              class="w-full py-2.5 px-4 bg-brand-primary-light hover:bg-brand-primary text-brand-primary-dark hover:text-white text-xs font-bold rounded-2xl transition-all duration-200 focus:outline-none border border-brand-primary flex items-center justify-center gap-2"
             >
-              🚀 Quick Sign In with Seed Account (Offline Demo)
+              <span>⚡</span>
+              <span>1-Click Sign In as Muskan (kaprimuskan6@gmail.com)</span>
             </button>
+            <p class="text-[11px] text-text-sub">
+              Or <a (click)="fillSeedCredentials()" class="text-brand-primary font-semibold hover:underline cursor-pointer">fill demo credentials</a> into the form above.
+            </p>
           </div>
         </div>
       </div>
@@ -123,6 +137,18 @@ export class LoginComponent {
 
   loading = false;
   errorMessage = '';
+  successMessage = '';
+
+  constructor() {
+    // Check if user just registered or wants pre-filled email from route state or URL
+    const nav = this.router.getCurrentNavigation();
+    if (nav?.extras?.state?.['registered']) {
+      this.successMessage = 'Account created successfully! Please sign in below.';
+    }
+    if (nav?.extras?.state?.['email']) {
+      this.loginForm.patchValue({ email: nav.extras.state['email'] });
+    }
+  }
 
   isFieldInvalid(field: string): boolean {
     const control = this.loginForm.get(field);
@@ -137,33 +163,43 @@ export class LoginComponent {
 
     this.loading = true;
     this.errorMessage = '';
+    this.successMessage = '';
 
-    this.authService.login(this.loginForm.value).subscribe({
+    const formVal = this.loginForm.value;
+    const loginPayload = {
+      email: (formVal.email || '').trim().toLowerCase(),
+      password: formVal.password
+    };
+
+    this.authService.login(loginPayload).subscribe({
       next: () => {
         this.loading = false;
-        window.location.href = '/dashboard';
+        this.router.navigate(['/dashboard']);
       },
       error: (err) => {
         this.loading = false;
-        console.error(err);
-        this.errorMessage = err?.error?.message || 'Login failed. Please check your credentials and try again.';
+        console.error('Login error:', err);
+        this.errorMessage = err?.error?.message || 'Invalid email address or password. Please try again.';
       }
     });
   }
 
-  proceedWithMock() {
-    // Save a mock session for Muskan Kapri (Loaded with seed.sql)
-    localStorage.setItem('access_token', 'mock_jwt_token');
-    localStorage.setItem('user_session', JSON.stringify({
-      userId: 'e3952bb0-b74a-4d7a-8f5b-1662fb1655b3',
-      name: 'Muskan Kapri',
+  proceedWithSeedAccount() {
+    this.fillSeedCredentials();
+    this.onSubmit();
+  }
+
+  fillSeedCredentials() {
+    this.loginForm.patchValue({
       email: 'kaprimuskan6@gmail.com',
-      role: 'ADMIN'
-    }));
-    window.location.href = '/dashboard';
+      password: 'Password@123'
+    });
+    this.errorMessage = '';
   }
 
   forgotPasswordPlaceholder() {
-    alert("To reset your password, please register a new account or sign in with the seed account.");
+    this.errorMessage = '';
+    this.fillSeedCredentials();
+    this.successMessage = "Demo credentials loaded (kaprimuskan6@gmail.com / Password@123). Click Sign In.";
   }
 }

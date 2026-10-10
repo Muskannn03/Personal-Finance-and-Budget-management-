@@ -36,7 +36,23 @@ public class User extends AuditableEntity {
 
     @Column(name = "password_hash", nullable = false, length = 255)
     @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    @com.fasterxml.jackson.annotation.JsonAlias({"password", "passwordHash", "password_hash"})
     private String passwordHash;
+
+    @Transient
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
+    private String password;
+
+    public String getPassword() {
+        return password != null ? password : passwordHash;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+        if (this.passwordHash == null || this.passwordHash.trim().isEmpty()) {
+            this.passwordHash = password;
+        }
+    }
 
     @Column(name = "currency_preference", nullable = false, length = 10)
     @Builder.Default
