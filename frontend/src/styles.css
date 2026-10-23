@@ -127,12 +127,64 @@
   animation: gentleFloat 5s ease-in-out infinite;
 }
 
+.font-serif {
+  font-family: 'Playfair Display', Georgia, serif;
+}
+
+.font-sans {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Diagonal Window Light Shadow overlay */
+.window-light-pattern {
+  background: repeating-linear-gradient(
+    -38deg,
+    rgba(255, 255, 255, 0.45) 0px,
+    rgba(255, 255, 255, 0.45) 90px,
+    rgba(235, 215, 210, 0.22) 90px,
+    rgba(235, 215, 210, 0.22) 140px,
+    rgba(255, 255, 255, 0.4) 140px,
+    rgba(255, 255, 255, 0.4) 220px,
+    rgba(235, 215, 210, 0.28) 220px,
+    rgba(235, 215, 210, 0.28) 280px
+  );
+  filter: blur(28px);
+}
+
+/* Subtle staggered page entrance */
+@keyframes fadeInRise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-rise {
+  animation: fadeInRise 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.delay-100 {
+  animation-delay: 100ms;
+}
+
+.delay-200 {
+  animation-delay: 200ms;
+}
+
+.delay-300 {
+  animation-delay: 300ms;
+}
+
 /* Maintain clean background on browser autofill */
 input:-webkit-autofill,
 input:-webkit-autofill:hover, 
 input:-webkit-autofill:focus, 
 input:-webkit-autofill:active {
   -webkit-box-shadow: 0 0 0 30px white inset !important;
-  -webkit-text-fill-color: #29252A !important;
+  -webkit-text-fill-color: #28232A !important;
   transition: background-color 5000s ease-in-out 0s;
 }

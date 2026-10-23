@@ -5,18 +5,31 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        serif: ['"Playfair Display"', 'Georgia', 'serif'],
+      },
       colors: {
+        ivory: '#FFF9F5',
+        blush: '#FCEAE6',
+        coral: {
+          DEFAULT: '#FF8A78',
+          pink: '#F16F83',
+          dark: '#28232A',
+          muted: '#88838C',
+          border: '#E7DFDF',
+        },
         brand: {
-          primary: '#E98FA3',
-          'primary-dark': '#D96F88',
-          'primary-light': '#F8DDE4',
-          bg: '#FFF9F7',
+          primary: '#FF8A78',
+          'primary-dark': '#F16F83',
+          'primary-light': '#FCEAE6',
+          bg: '#FFF9F5',
           surface: '#FFFFFF',
-          border: '#EEE5E7',
+          border: '#E7DFDF',
         },
         text: {
-          main: '#29252A',
-          sub: '#777177',
+          main: '#28232A',
+          sub: '#88838C',
         },
         semantic: {
           income: '#8FB9A8',     // soft green
