@@ -10,10 +10,18 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.transaction.annotation.Transactional;
+
 @Repository
 public interface AccountRepository extends JpaRepository<Account, UUID> {
     List<Account> findByUser_UserId(UUID userId);
     
     @Query("SELECT COALESCE(SUM(a.balance), 0) FROM Account a WHERE a.user.userId = :userId")
     BigDecimal getNetWorthByUserId(@Param("userId") UUID userId);
+
+    @Modifying
+    @Transactional
+    @Query("UPDATE Account a SET a.balance = a.balance + :amount WHERE a.accountId = :accountId")
+    void creditBalance(@Param("accountId") UUID accountId, @Param("amount") BigDecimal amount);
 }

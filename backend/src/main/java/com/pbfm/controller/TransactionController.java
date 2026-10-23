@@ -10,6 +10,7 @@ import com.pbfm.response.ApiResponse;
 import com.pbfm.response.TransactionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.persistence.EntityManager;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -42,6 +43,7 @@ public class TransactionController {
     private final RewardRepository rewardRepository;
     private final BudgetRepository budgetRepository;
     private final ReminderRepository reminderRepository;
+    private final EntityManager entityManager;
 
     @PostMapping
     @Operation(summary = "Record a new transaction")
@@ -67,7 +69,7 @@ public class TransactionController {
             request.setDate(LocalDateTime.now());
         }
 
-        Transaction savedTransaction = transactionRepository.save(request);
+        Transaction savedTransaction = transactionRepository.saveAndFlush(request);
         log.info("Transaction recorded successfully with ID: {}", savedTransaction.getTransactionId());
 
         // --- BUSINESS RULE: Check Budget Breaches on Expenses ---
@@ -228,8 +230,8 @@ public class TransactionController {
 
         rewardRepository.save(reward);
 
-        // Credit the account balance programmatically
-        account.setBalance(account.getBalance().add(cashbackAmount));
-        accountRepository.save(account);
+        // Atomically credit the cashback to the account in database without overwriting triggers
+        accountRepository.creditBalance(account.getAccountId(), cashbackAmount);
+        entityManager.refresh(account);
     }
 }
