@@ -23,8 +23,17 @@ import { AuthService } from '../../core/services/auth.service';
 
         <!-- Top Header & Live Security Pill -->
         <div class="flex items-center justify-between z-10">
-          <div class="flex items-center gap-3">
-            <img src="/logo.png" alt="BACHAT Logo" class="h-14 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105 duration-300" />
+          <div class="flex items-center gap-4 group cursor-default">
+            <img src="/logo-icon.png" alt="BACHAT Logo" class="h-16 w-16 object-contain rounded-2xl drop-shadow-md transition-transform group-hover:scale-105 duration-300 flex-shrink-0" />
+            <div class="flex flex-col justify-center">
+              <div class="flex items-center gap-2">
+                <span class="text-3xl xl:text-4xl font-black text-text-main tracking-tight leading-none">BACHAT</span>
+                <span class="text-xs font-black uppercase tracking-wider text-brand-primary-dark bg-brand-primary/15 border border-brand-primary/25 px-2 py-0.5 rounded-md">PLATFORM</span>
+              </div>
+              <span class="text-xs sm:text-sm font-extrabold text-[#524B53] tracking-wider uppercase mt-1.5 leading-snug">
+                Personal Finance &amp; Budget Management Platform
+              </span>
+            </div>
           </div>
           <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/70 backdrop-blur-md border border-white/80 shadow-sm text-xs font-semibold text-text-sub">
             <span class="relative flex h-2 w-2">
@@ -121,8 +130,17 @@ import { AuthService } from '../../core/services/auth.service';
         <!-- Main Form Glass Card -->
         <div class="glass-card-elevated max-w-md w-full p-8 sm:p-10 rounded-3xl relative z-10 transition-all duration-300">
           <!-- Mobile Brand Logo -->
-          <div class="lg:hidden flex justify-center mb-6">
-            <img src="/logo.png" alt="BACHAT Logo" class="h-12 w-auto object-contain drop-shadow-sm" />
+          <div class="lg:hidden flex items-center justify-center gap-3.5 mb-6">
+            <img src="/logo-icon.png" alt="BACHAT Logo" class="h-12 w-12 object-contain rounded-xl drop-shadow-sm flex-shrink-0" />
+            <div class="flex flex-col">
+              <div class="flex items-center gap-2">
+                <span class="text-2xl font-black text-text-main tracking-tight leading-none">BACHAT</span>
+                <span class="text-[10px] font-black uppercase tracking-wider text-brand-primary-dark bg-brand-primary/15 border border-brand-primary/25 px-1.5 py-0.5 rounded-md">APP</span>
+              </div>
+              <span class="text-xs font-extrabold text-[#524B53] tracking-wider uppercase mt-1 leading-tight">
+                Personal Finance &amp; Budget Management Platform
+              </span>
+            </div>
           </div>
 
           <div class="mb-6">

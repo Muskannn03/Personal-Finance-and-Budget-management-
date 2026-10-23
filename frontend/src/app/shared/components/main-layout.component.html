@@ -7,8 +7,14 @@
   >
     <!-- Logo area -->
     <div class="flex items-center justify-between p-4 border-b border-brand-border h-16">
-      <div class="flex items-center gap-2" *ngIf="isExpanded">
-        <img src="/logo.png" alt="BACHAT Logo" class="h-9 w-auto max-w-[170px] object-contain" />
+      <div class="flex items-center gap-2.5 overflow-hidden" *ngIf="isExpanded">
+        <img src="/logo-icon.png" alt="BACHAT Logo" class="h-9 w-9 object-contain rounded-xl drop-shadow-xs flex-shrink-0" />
+        <div class="flex flex-col min-w-0">
+          <span class="text-base font-black text-text-main tracking-tight leading-none">BACHAT</span>
+          <span class="text-[9px] font-bold text-[#655E66] tracking-wider uppercase truncate mt-0.5">
+            Personal Finance Platform
+          </span>
+        </div>
       </div>
       <button (click)="toggleSidenav()" class="text-text-sub hover:text-brand-primary-dark focus:outline-none" *ngIf="isExpanded" title="Collapse Sidebar">
         <!-- SVG close arrow -->
@@ -191,8 +197,14 @@
 
   <!-- Mobile Header (hidden on md and up) -->
   <header class="md:hidden flex items-center justify-between px-5 h-16 bg-white border-b border-brand-border sticky top-0 z-40">
-    <div class="flex items-center gap-2">
-      <img src="/logo.png" alt="BACHAT Logo" class="h-8 w-auto max-w-[140px] object-contain" />
+    <div class="flex items-center gap-2.5">
+      <img src="/logo-icon.png" alt="BACHAT Logo" class="h-8 w-8 object-contain rounded-lg flex-shrink-0" />
+      <div class="flex flex-col">
+        <span class="text-base font-black text-text-main tracking-tight leading-none">BACHAT</span>
+        <span class="text-[9px] font-bold text-[#655E66] tracking-wider uppercase mt-0.5">
+          Personal Finance Platform
+        </span>
+      </div>
     </div>
     
     <button (click)="toggleMobileMenu()" class="text-text-main focus:outline-none hover:text-brand-primary">
