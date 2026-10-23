@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -50,16 +50,19 @@ import { AuthService } from '../../core/services/auth.service';
           </div>
 
           <!-- Error Alert -->
-          <div *ngIf="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div *ngIf="errorMessage()" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <span>{{ errorMessage }}</span>
+            <span>{{ errorMessage() }}</span>
           </div>
 
           <!-- Success Alert -->
-          <div *ngIf="successMessage" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-2xl text-sm">
-            {{ successMessage }}
+          <div *ngIf="successMessage()" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>{{ successMessage() }}</span>
           </div>
 
           <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-5">
@@ -91,23 +94,33 @@ import { AuthService } from '../../core/services/auth.service';
 
             <div>
               <label for="password" class="block text-xs font-bold text-text-sub uppercase tracking-wider mb-1">Password</label>
-              <input 
-                id="password" 
-                type="password" 
-                formControlName="password"
-                placeholder="••••••••"
-                class="w-full px-4 py-3 rounded-2xl border border-brand-border bg-brand-bg text-sm focus:outline-none focus:border-brand-primary transition-all duration-200"
-                [class.border-red-400]="isFieldInvalid('password')"
-              >
+              <div class="relative">
+                <input 
+                  id="password" 
+                  [type]="showPassword() ? 'text' : 'password'" 
+                  formControlName="password"
+                  placeholder="••••••••"
+                  class="w-full px-4 py-3 pr-11 rounded-2xl border border-brand-border bg-brand-bg text-sm focus:outline-none focus:border-brand-primary transition-all duration-200"
+                  [class.border-red-400]="isFieldInvalid('password')"
+                >
+                <button 
+                  type="button" 
+                  (click)="togglePasswordVisibility()" 
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none text-sm p-1"
+                  tabindex="-1"
+                >
+                  {{ showPassword() ? '👁️' : '🙈' }}
+                </button>
+              </div>
               <p *ngIf="isFieldInvalid('password')" class="text-xs text-red-500 mt-1">Password must be at least 6 characters</p>
             </div>
 
             <button 
               type="submit" 
-              [disabled]="loading"
+              [disabled]="loading()"
               class="w-full py-3 px-4 bg-brand-primary hover:bg-brand-primary-dark text-white text-sm font-bold rounded-2xl shadow-sm hover:shadow transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ loading ? 'Creating Account...' : 'Register' }}
+              {{ loading() ? 'Creating Account...' : 'Register' }}
             </button>
           </form>
         </div>
@@ -119,6 +132,7 @@ export class RegisterComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   registerForm: FormGroup = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
@@ -126,9 +140,15 @@ export class RegisterComponent {
     password: ['', [Validators.required, Validators.minLength(6)]]
   });
 
-  loading = false;
-  errorMessage = '';
-  successMessage = '';
+  loading = signal<boolean>(false);
+  errorMessage = signal<string>('');
+  successMessage = signal<string>('');
+  showPassword = signal<boolean>(false);
+
+  togglePasswordVisibility() {
+    this.showPassword.update(v => !v);
+    this.cdr.markForCheck();
+  }
 
   isFieldInvalid(field: string): boolean {
     const control = this.registerForm.get(field);
@@ -141,14 +161,15 @@ export class RegisterComponent {
       return;
     }
 
-    this.loading = true;
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.loading.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+    this.cdr.markForCheck();
 
     const formVals = this.registerForm.value;
     const registerPayload = {
       name: (formVals.name || '').trim(),
-      email: (formVals.email || '').trim(),
+      email: (formVals.email || '').trim().toLowerCase(),
       password: formVals.password,
       passwordHash: formVals.password,
       currencyPreference: 'INR'
@@ -156,16 +177,19 @@ export class RegisterComponent {
 
     this.authService.register(registerPayload).subscribe({
       next: () => {
-        this.loading = false;
-        this.successMessage = 'Account created successfully! Redirecting to login...';
+        this.loading.set(false);
+        this.successMessage.set('Account created successfully! Redirecting to login...');
+        this.cdr.markForCheck();
         setTimeout(() => {
-          this.router.navigate(['/login']);
-        }, 1500);
+          this.router.navigate(['/login'], { state: { email: registerPayload.email, registered: true } });
+        }, 1200);
       },
       error: (err) => {
-        this.loading = false;
+        this.loading.set(false);
         console.error(err);
-        this.errorMessage = err?.error?.message || 'Registration failed. The email address might already be registered.';
+        const msg = err?.error?.message || 'Registration failed. The email address might already be registered.';
+        this.errorMessage.set(msg);
+        this.cdr.markForCheck();
       }
     });
   }

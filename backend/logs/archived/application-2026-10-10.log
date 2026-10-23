@@ -1,0 +1,1110 @@
+2026-10-10 16:45:23.065 [background-preinit] INFO  o.h.validator.internal.util.Version - HV000001: Hibernate Validator 8.0.1.Final
+2026-10-10 16:45:23.134 [restartedMain] INFO  com.pbfm.PbfmApplication - Starting PbfmApplication using Java 21.0.10 with PID 30568 (C:\Users\ASUS\OneDrive\Desktop\PFBM\backend\target\classes started by ASUS in C:\Users\ASUS\OneDrive\Desktop\PFBM\backend)
+2026-10-10 16:45:23.134 [restartedMain] DEBUG com.pbfm.PbfmApplication - Running with Spring Boot v3.3.2, Spring v6.1.11
+2026-10-10 16:45:23.134 [restartedMain] INFO  com.pbfm.PbfmApplication - The following 1 profile is active: "dev"
+2026-10-10 16:45:23.193 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - Devtools property defaults active! Set 'spring.devtools.add-properties' to 'false' to disable
+2026-10-10 16:45:23.193 [restartedMain] INFO  o.s.b.d.e.DevToolsPropertyDefaultsPostProcessor - For additional web related logging consider setting the 'logging.level.web' property to 'DEBUG'
+2026-10-10 16:45:24.945 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-10-10 16:45:25.213 [restartedMain] INFO  o.s.d.r.c.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 250 ms. Found 10 JPA repository interfaces.
+2026-10-10 16:45:28.738 [restartedMain] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat initialized with port 8080 (http)
+2026-10-10 16:45:28.775 [restartedMain] INFO  o.a.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+2026-10-10 16:45:28.780 [restartedMain] INFO  o.a.catalina.core.StandardService - Starting service [Tomcat]
+2026-10-10 16:45:28.781 [restartedMain] INFO  o.a.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/10.1.26]
+2026-10-10 16:45:29.002 [restartedMain] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2026-10-10 16:45:29.006 [restartedMain] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 5812 ms
+2026-10-10 16:45:30.095 [restartedMain] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Starting...
+2026-10-10 16:45:30.905 [restartedMain] INFO  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@46e2e7b8
+2026-10-10 16:45:30.925 [restartedMain] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Start completed.
+2026-10-10 16:45:31.360 [restartedMain] INFO  o.h.jpa.internal.util.LogHelper - HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-10-10 16:45:31.632 [restartedMain] INFO  org.hibernate.Version - HHH000412: Hibernate ORM core version 6.5.2.Final
+2026-10-10 16:45:31.777 [restartedMain] INFO  o.h.c.i.RegionFactoryInitiator - HHH000026: Second-level cache disabled
+2026-10-10 16:45:32.905 [restartedMain] INFO  o.s.o.j.p.SpringPersistenceUnitInfo - No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-10-10 16:45:33.081 [restartedMain] WARN  org.hibernate.orm.deprecation - HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-10-10 16:45:37.636 [restartedMain] INFO  o.h.e.t.j.p.i.JtaPlatformInitiator - HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-10-10 16:45:37.849 [restartedMain] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-10-10 16:45:39.558 [restartedMain] DEBUG c.p.security.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
+2026-10-10 16:45:39.735 [restartedMain] INFO  o.s.d.j.r.query.QueryEnhancerFactory - Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-10-10 16:45:41.310 [restartedMain] INFO  o.s.s.c.a.a.c.InitializeUserDetailsBeanManagerConfigurer$InitializeUserDetailsManagerConfigurer - Global AuthenticationManager configured with UserDetailsService bean with name customUserDetailsService
+2026-10-10 16:45:42.674 [restartedMain] WARN  o.s.b.a.o.j.JpaBaseConfiguration$JpaWebConfiguration - spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-10-10 16:45:43.931 [restartedMain] INFO  o.s.b.a.e.web.EndpointLinksResolver - Exposing 1 endpoint beneath base path '/actuator'
+2026-10-10 16:45:45.435 [restartedMain] INFO  o.s.b.d.a.OptionalLiveReloadServer - LiveReload server is running on port 35729
+2026-10-10 16:45:45.580 [restartedMain] INFO  o.a.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8080"]
+2026-10-10 16:45:45.642 [restartedMain] INFO  o.s.b.w.e.tomcat.TomcatWebServer - Tomcat started on port 8080 (http) with context path '/'
+2026-10-10 16:45:45.672 [restartedMain] INFO  com.pbfm.PbfmApplication - Started PbfmApplication in 23.302 seconds (process running for 23.991)
+2026-10-10 16:46:00.534 [http-nio-8080-exec-1] INFO  o.a.c.c.C.[Tomcat].[localhost].[/] - Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-10-10 16:46:00.535 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Initializing Servlet 'dispatcherServlet'
+2026-10-10 16:46:00.537 [http-nio-8080-exec-1] INFO  o.s.web.servlet.DispatcherServlet - Completed initialization in 2 ms
+2026-10-10 16:46:00.666 [http-nio-8080-exec-2] INFO  c.p.security.JwtAuthenticationFilter - No token found in request headers
+2026-10-10 16:46:01.104 [http-nio-8080-exec-2] INFO  com.pbfm.controller.AuthController - Attempting login authentication for user email: kaprimuskan6@gmail.com
+2026-10-10 16:46:01.535 [http-nio-8080-exec-2] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.created_by,
+        u1_0.currency_preference,
+        u1_0.deleted_at,
+        u1_0.email,
+        u1_0.name,
+        u1_0.password_hash,
+        u1_0.role,
+        u1_0.updated_at,
+        u1_0.updated_by 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m upper(u1_0.email)=upper(?)
+2026-10-10 16:46:01.607 [http-nio-8080-exec-2] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        rp1_0.profile_id,
+        rp1_0.created_at,
+        rp1_0.created_by,
+        rp1_0.deleted_at,
+        rp1_0.profile_type,
+        rp1_0.risk_score,
+        rp1_0.updated_at,
+        rp1_0.updated_by,
+        rp1_0.user_id 
+    [34mfrom[0m
+        risk_profiles rp1_0 
+    [34mwhere[0m
+        rp1_0.user_id=? 
+        [34mand[0m (
+            rp1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:01.915 [http-nio-8080-exec-2] WARN  c.p.exception.GlobalExceptionHandler - Authentication failed: Bad credentials
+2026-10-10 16:46:01.992 [http-nio-8080-exec-2] WARN  o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - Resolved [org.springframework.security.authentication.BadCredentialsException: Bad credentials]
+2026-10-10 16:46:07.232 [http-nio-8080-exec-4] INFO  c.p.security.JwtAuthenticationFilter - No token found in request headers
+2026-10-10 16:46:07.237 [http-nio-8080-exec-4] INFO  com.pbfm.controller.AuthController - Attempting login authentication for user email: kaprimuskan6@gmail.com
+2026-10-10 16:46:07.241 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.created_by,
+        u1_0.currency_preference,
+        u1_0.deleted_at,
+        u1_0.email,
+        u1_0.name,
+        u1_0.password_hash,
+        u1_0.role,
+        u1_0.updated_at,
+        u1_0.updated_by 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m upper(u1_0.email)=upper(?)
+2026-10-10 16:46:07.244 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        rp1_0.profile_id,
+        rp1_0.created_at,
+        rp1_0.created_by,
+        rp1_0.deleted_at,
+        rp1_0.profile_type,
+        rp1_0.risk_score,
+        rp1_0.updated_at,
+        rp1_0.updated_by,
+        rp1_0.user_id 
+    [34mfrom[0m
+        risk_profiles rp1_0 
+    [34mwhere[0m
+        rp1_0.user_id=? 
+        [34mand[0m (
+            rp1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:07.670 [http-nio-8080-exec-9] INFO  c.p.security.JwtAuthenticationFilter - Token received in request header
+2026-10-10 16:46:07.764 [http-nio-8080-exec-9] INFO  c.p.security.JwtAuthenticationFilter - Token is valid. User: kaprimuskan6@gmail.com
+2026-10-10 16:46:07.767 [http-nio-8080-exec-9] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.created_by,
+        u1_0.currency_preference,
+        u1_0.deleted_at,
+        u1_0.email,
+        u1_0.name,
+        u1_0.password_hash,
+        u1_0.role,
+        u1_0.updated_at,
+        u1_0.updated_by 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m upper(u1_0.email)=upper(?)
+2026-10-10 16:46:07.770 [http-nio-8080-exec-9] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        rp1_0.profile_id,
+        rp1_0.created_at,
+        rp1_0.created_by,
+        rp1_0.deleted_at,
+        rp1_0.profile_type,
+        rp1_0.risk_score,
+        rp1_0.updated_at,
+        rp1_0.updated_by,
+        rp1_0.user_id 
+    [34mfrom[0m
+        risk_profiles rp1_0 
+    [34mwhere[0m
+        rp1_0.user_id=? 
+        [34mand[0m (
+            rp1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:07.775 [http-nio-8080-exec-9] INFO  c.p.security.JwtAuthenticationFilter - User authenticated in SecurityContext: kaprimuskan6@gmail.com
+2026-10-10 16:46:07.790 [http-nio-8080-exec-9] INFO  c.pbfm.controller.ReportController - Generating dashboard analytics for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:07.818 [http-nio-8080-exec-9] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        count(*) 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m u1_0.user_id=?
+2026-10-10 16:46:07.840 [http-nio-8080-exec-9] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        coalesce(sum(a1_0.balance), 0) 
+    [34mfrom[0m
+        accounts a1_0 
+    [34mwhere[0m
+        (
+            a1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m a1_0.user_id=?
+2026-10-10 16:46:07.852 [http-nio-8080-exec-9] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        coalesce(sum(t1_0.amount), 0) 
+    [34mfrom[0m
+        transactions t1_0 
+    [34mwhere[0m
+        (
+            t1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m t1_0.user_id=? 
+        [34mand[0m t1_0.type=? 
+        [34mand[0m t1_0.[34mdate[0m [34mbetween[0m ? [34mand[0m ?
+2026-10-10 16:46:07.862 [http-nio-8080-exec-9] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        coalesce(sum(t1_0.amount), 0) 
+    [34mfrom[0m
+        transactions t1_0 
+    [34mwhere[0m
+        (
+            t1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m t1_0.user_id=? 
+        [34mand[0m t1_0.type=? 
+        [34mand[0m t1_0.[34mdate[0m [34mbetween[0m ? [34mand[0m ?
+2026-10-10 16:46:07.870 [http-nio-8080-exec-9] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        a1_0.account_id,
+        a1_0.account_name,
+        a1_0.account_type,
+        a1_0.balance,
+        a1_0.created_at,
+        a1_0.created_by,
+        a1_0.deleted_at,
+        a1_0.updated_at,
+        a1_0.updated_by,
+        a1_0.user_id 
+    [34mfrom[0m
+        accounts a1_0 
+    [34mwhere[0m
+        (
+            a1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m a1_0.user_id=?
+2026-10-10 16:46:07.891 [http-nio-8080-exec-9] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        g1_0.goal_id,
+        g1_0.created_at,
+        g1_0.created_by,
+        g1_0.current_amount,
+        g1_0.deleted_at,
+        g1_0.goal_name,
+        g1_0.status,
+        g1_0.target_amount,
+        g1_0.target_date,
+        g1_0.updated_at,
+        g1_0.updated_by,
+        g1_0.user_id 
+    [34mfrom[0m
+        goals g1_0 
+    [34mwhere[0m
+        (
+            g1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m g1_0.user_id=?
+2026-10-10 16:46:07.897 [http-nio-8080-exec-9] INFO  c.pbfm.controller.ReportController - Dashboard analytics compiled successfully for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:07.935 [http-nio-8080-exec-8] INFO  c.p.security.JwtAuthenticationFilter - Token received in request header
+2026-10-10 16:46:07.938 [http-nio-8080-exec-8] INFO  c.p.security.JwtAuthenticationFilter - Token is valid. User: kaprimuskan6@gmail.com
+2026-10-10 16:46:07.941 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.created_by,
+        u1_0.currency_preference,
+        u1_0.deleted_at,
+        u1_0.email,
+        u1_0.name,
+        u1_0.password_hash,
+        u1_0.role,
+        u1_0.updated_at,
+        u1_0.updated_by 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m upper(u1_0.email)=upper(?)
+2026-10-10 16:46:07.943 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        rp1_0.profile_id,
+        rp1_0.created_at,
+        rp1_0.created_by,
+        rp1_0.deleted_at,
+        rp1_0.profile_type,
+        rp1_0.risk_score,
+        rp1_0.updated_at,
+        rp1_0.updated_by,
+        rp1_0.user_id 
+    [34mfrom[0m
+        risk_profiles rp1_0 
+    [34mwhere[0m
+        rp1_0.user_id=? 
+        [34mand[0m (
+            rp1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:07.947 [http-nio-8080-exec-8] INFO  c.p.security.JwtAuthenticationFilter - User authenticated in SecurityContext: kaprimuskan6@gmail.com
+2026-10-10 16:46:07.962 [http-nio-8080-exec-8] INFO  c.p.controller.TransactionController - Searching and filtering transactions pageably for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3, account ID: null
+2026-10-10 16:46:07.964 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        count(*) 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m u1_0.user_id=?
+2026-10-10 16:46:08.007 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        t1_0.transaction_id,
+        t1_0.account_id,
+        a1_0.account_id,
+        a1_0.account_name,
+        a1_0.account_type,
+        a1_0.balance,
+        a1_0.created_at,
+        a1_0.created_by,
+        a1_0.deleted_at,
+        a1_0.updated_at,
+        a1_0.updated_by,
+        a1_0.user_id,
+        t1_0.amount,
+        c1_0.category_id,
+        c1_0.category_name,
+        c1_0.created_at,
+        c1_0.created_by,
+        c1_0.deleted_at,
+        c1_0.type,
+        c1_0.updated_at,
+        c1_0.updated_by,
+        c1_0.user_id,
+        t1_0.created_at,
+        t1_0.created_by,
+        t1_0.[34mdate[0m,
+        t1_0.deleted_at,
+        t1_0.type,
+        t1_0.updated_at,
+        t1_0.updated_by,
+        t1_0.user_id 
+    [34mfrom[0m
+        transactions t1_0 
+    [34mleft[0m [34mjoin[0m
+        accounts a1_0 
+            [34mon[0m a1_0.account_id=t1_0.account_id 
+            [34mand[0m (a1_0.deleted_at [34mIS[0m [34mNULL[0m) 
+    [34mleft[0m [34mjoin[0m
+        categories c1_0 
+            [34mon[0m c1_0.category_id=t1_0.category_id 
+            [34mand[0m (c1_0.deleted_at [34mIS[0m [34mNULL[0m) 
+    [34mwhere[0m
+        (
+            t1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m t1_0.user_id=? 
+        [34mand[0m (
+            [34mcast[0m(? [34mas[0m uuid) [34mis[0m [34mnull[0m 
+            [34mor[0m t1_0.account_id=?
+        ) 
+        [34mand[0m (
+            [34mcast[0m(? [34mas[0m [34mtimestamp[0m(6)) [34mis[0m [34mnull[0m 
+            [34mor[0m t1_0.[34mdate[0m>=?
+        ) 
+        [34mand[0m (
+            [34mcast[0m(? [34mas[0m [34mtimestamp[0m(6)) [34mis[0m [34mnull[0m 
+            [34mor[0m t1_0.[34mdate[0m<=?
+        ) 
+    [34morder[0m [34mby[0m
+        t1_0.[34mdate[0m desc 
+    [34mfetch[0m
+        first ? [34mrows[0m [34monly[0m
+2026-10-10 16:46:08.035 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        count(t1_0.transaction_id) 
+    [34mfrom[0m
+        transactions t1_0 
+    [34mwhere[0m
+        (
+            t1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m t1_0.user_id=? 
+        [34mand[0m (
+            [34mcast[0m(? [34mas[0m uuid) [34mis[0m [34mnull[0m 
+            [34mor[0m t1_0.account_id=?
+        ) 
+        [34mand[0m (
+            [34mcast[0m(? [34mas[0m [34mtimestamp[0m(6)) [34mis[0m [34mnull[0m 
+            [34mor[0m t1_0.[34mdate[0m>=?
+        ) 
+        [34mand[0m (
+            [34mcast[0m(? [34mas[0m [34mtimestamp[0m(6)) [34mis[0m [34mnull[0m 
+            [34mor[0m t1_0.[34mdate[0m<=?
+        )
+2026-10-10 16:46:08.040 [http-nio-8080-exec-8] INFO  c.p.controller.TransactionController - Found 5 transactions in the requested page for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:08.063 [http-nio-8080-exec-8] WARN  o.s.d.w.c.SpringDataJacksonConfiguration$PageModule$PlainPageSerializationWarning - Serializing PageImpl instances as-is is not supported, meaning that there is no guarantee about the stability of the resulting JSON structure!
+	For a stable JSON structure, please use Spring Data's PagedModel (globally via @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO))
+	or Spring HATEOAS and Spring Data's PagedResourcesAssembler as documented in https://docs.spring.io/spring-data/commons/reference/repositories/core-extensions.html#core.web.pageables.
+
+2026-10-10 16:46:25.247 [http-nio-8080-exec-2] INFO  c.p.security.JwtAuthenticationFilter - Token received in request header
+2026-10-10 16:46:25.252 [http-nio-8080-exec-2] INFO  c.p.security.JwtAuthenticationFilter - Token is valid. User: kaprimuskan6@gmail.com
+2026-10-10 16:46:25.254 [http-nio-8080-exec-3] INFO  c.p.security.JwtAuthenticationFilter - Token received in request header
+2026-10-10 16:46:25.255 [http-nio-8080-exec-4] INFO  c.p.security.JwtAuthenticationFilter - Token received in request header
+2026-10-10 16:46:25.257 [http-nio-8080-exec-3] INFO  c.p.security.JwtAuthenticationFilter - Token is valid. User: kaprimuskan6@gmail.com
+2026-10-10 16:46:25.258 [http-nio-8080-exec-4] INFO  c.p.security.JwtAuthenticationFilter - Token is valid. User: kaprimuskan6@gmail.com
+2026-10-10 16:46:25.258 [http-nio-8080-exec-2] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.created_by,
+        u1_0.currency_preference,
+        u1_0.deleted_at,
+        u1_0.email,
+        u1_0.name,
+        u1_0.password_hash,
+        u1_0.role,
+        u1_0.updated_at,
+        u1_0.updated_by 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m upper(u1_0.email)=upper(?)
+2026-10-10 16:46:25.261 [http-nio-8080-exec-3] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.created_by,
+        u1_0.currency_preference,
+        u1_0.deleted_at,
+        u1_0.email,
+        u1_0.name,
+        u1_0.password_hash,
+        u1_0.role,
+        u1_0.updated_at,
+        u1_0.updated_by 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m upper(u1_0.email)=upper(?)
+2026-10-10 16:46:25.261 [http-nio-8080-exec-2] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        rp1_0.profile_id,
+        rp1_0.created_at,
+        rp1_0.created_by,
+        rp1_0.deleted_at,
+        rp1_0.profile_type,
+        rp1_0.risk_score,
+        rp1_0.updated_at,
+        rp1_0.updated_by,
+        rp1_0.user_id 
+    [34mfrom[0m
+        risk_profiles rp1_0 
+    [34mwhere[0m
+        rp1_0.user_id=? 
+        [34mand[0m (
+            rp1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:25.262 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.created_by,
+        u1_0.currency_preference,
+        u1_0.deleted_at,
+        u1_0.email,
+        u1_0.name,
+        u1_0.password_hash,
+        u1_0.role,
+        u1_0.updated_at,
+        u1_0.updated_by 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m upper(u1_0.email)=upper(?)
+2026-10-10 16:46:25.266 [http-nio-8080-exec-2] INFO  c.p.security.JwtAuthenticationFilter - User authenticated in SecurityContext: kaprimuskan6@gmail.com
+2026-10-10 16:46:25.266 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        rp1_0.profile_id,
+        rp1_0.created_at,
+        rp1_0.created_by,
+        rp1_0.deleted_at,
+        rp1_0.profile_type,
+        rp1_0.risk_score,
+        rp1_0.updated_at,
+        rp1_0.updated_by,
+        rp1_0.user_id 
+    [34mfrom[0m
+        risk_profiles rp1_0 
+    [34mwhere[0m
+        rp1_0.user_id=? 
+        [34mand[0m (
+            rp1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:25.268 [http-nio-8080-exec-3] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        rp1_0.profile_id,
+        rp1_0.created_at,
+        rp1_0.created_by,
+        rp1_0.deleted_at,
+        rp1_0.profile_type,
+        rp1_0.risk_score,
+        rp1_0.updated_at,
+        rp1_0.updated_by,
+        rp1_0.user_id 
+    [34mfrom[0m
+        risk_profiles rp1_0 
+    [34mwhere[0m
+        rp1_0.user_id=? 
+        [34mand[0m (
+            rp1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:25.269 [http-nio-8080-exec-2] INFO  c.p.controller.TransactionController - Searching and filtering transactions pageably for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3, account ID: null
+2026-10-10 16:46:25.271 [http-nio-8080-exec-2] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        count(*) 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m u1_0.user_id=?
+2026-10-10 16:46:25.272 [http-nio-8080-exec-4] INFO  c.p.security.JwtAuthenticationFilter - User authenticated in SecurityContext: kaprimuskan6@gmail.com
+2026-10-10 16:46:25.273 [http-nio-8080-exec-3] INFO  c.p.security.JwtAuthenticationFilter - User authenticated in SecurityContext: kaprimuskan6@gmail.com
+2026-10-10 16:46:25.277 [http-nio-8080-exec-4] INFO  c.pbfm.controller.AccountController - Fetching accounts for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:25.278 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        count(*) 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m u1_0.user_id=?
+2026-10-10 16:46:25.280 [http-nio-8080-exec-3] INFO  c.pbfm.controller.CategoryController - Fetching all categories for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:25.280 [http-nio-8080-exec-2] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        t1_0.transaction_id,
+        t1_0.account_id,
+        a1_0.account_id,
+        a1_0.account_name,
+        a1_0.account_type,
+        a1_0.balance,
+        a1_0.created_at,
+        a1_0.created_by,
+        a1_0.deleted_at,
+        a1_0.updated_at,
+        a1_0.updated_by,
+        a1_0.user_id,
+        t1_0.amount,
+        c1_0.category_id,
+        c1_0.category_name,
+        c1_0.created_at,
+        c1_0.created_by,
+        c1_0.deleted_at,
+        c1_0.type,
+        c1_0.updated_at,
+        c1_0.updated_by,
+        c1_0.user_id,
+        t1_0.created_at,
+        t1_0.created_by,
+        t1_0.[34mdate[0m,
+        t1_0.deleted_at,
+        t1_0.type,
+        t1_0.updated_at,
+        t1_0.updated_by,
+        t1_0.user_id 
+    [34mfrom[0m
+        transactions t1_0 
+    [34mleft[0m [34mjoin[0m
+        accounts a1_0 
+            [34mon[0m a1_0.account_id=t1_0.account_id 
+            [34mand[0m (a1_0.deleted_at [34mIS[0m [34mNULL[0m) 
+    [34mleft[0m [34mjoin[0m
+        categories c1_0 
+            [34mon[0m c1_0.category_id=t1_0.category_id 
+            [34mand[0m (c1_0.deleted_at [34mIS[0m [34mNULL[0m) 
+    [34mwhere[0m
+        (
+            t1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m t1_0.user_id=? 
+        [34mand[0m (
+            [34mcast[0m(? [34mas[0m uuid) [34mis[0m [34mnull[0m 
+            [34mor[0m t1_0.account_id=?
+        ) 
+        [34mand[0m (
+            [34mcast[0m(? [34mas[0m [34mtimestamp[0m(6)) [34mis[0m [34mnull[0m 
+            [34mor[0m t1_0.[34mdate[0m>=?
+        ) 
+        [34mand[0m (
+            [34mcast[0m(? [34mas[0m [34mtimestamp[0m(6)) [34mis[0m [34mnull[0m 
+            [34mor[0m t1_0.[34mdate[0m<=?
+        ) 
+    [34morder[0m [34mby[0m
+        t1_0.[34mdate[0m desc 
+    [34mfetch[0m
+        first ? [34mrows[0m [34monly[0m
+2026-10-10 16:46:25.280 [http-nio-8080-exec-3] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        count(*) 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m u1_0.user_id=?
+2026-10-10 16:46:25.285 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        a1_0.account_id,
+        a1_0.account_name,
+        a1_0.account_type,
+        a1_0.balance,
+        a1_0.created_at,
+        a1_0.created_by,
+        a1_0.deleted_at,
+        a1_0.updated_at,
+        a1_0.updated_by,
+        a1_0.user_id 
+    [34mfrom[0m
+        accounts a1_0 
+    [34mwhere[0m
+        (
+            a1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m a1_0.user_id=?
+2026-10-10 16:46:25.287 [http-nio-8080-exec-3] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        c1_0.category_id,
+        c1_0.category_name,
+        c1_0.created_at,
+        c1_0.created_by,
+        c1_0.deleted_at,
+        c1_0.type,
+        c1_0.updated_at,
+        c1_0.updated_by,
+        c1_0.user_id 
+    [34mfrom[0m
+        categories c1_0 
+    [34mwhere[0m
+        (
+            c1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m c1_0.user_id=?
+2026-10-10 16:46:25.291 [http-nio-8080-exec-2] INFO  c.p.controller.TransactionController - Found 5 transactions in the requested page for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:25.299 [http-nio-8080-exec-4] INFO  c.pbfm.controller.AccountController - Found 3 accounts for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:25.306 [http-nio-8080-exec-3] INFO  c.pbfm.controller.CategoryController - Found 5 categories for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:27.377 [http-nio-8080-exec-5] INFO  c.p.security.JwtAuthenticationFilter - Token received in request header
+2026-10-10 16:46:27.381 [http-nio-8080-exec-5] INFO  c.p.security.JwtAuthenticationFilter - Token is valid. User: kaprimuskan6@gmail.com
+2026-10-10 16:46:27.385 [http-nio-8080-exec-5] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.created_by,
+        u1_0.currency_preference,
+        u1_0.deleted_at,
+        u1_0.email,
+        u1_0.name,
+        u1_0.password_hash,
+        u1_0.role,
+        u1_0.updated_at,
+        u1_0.updated_by 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m upper(u1_0.email)=upper(?)
+2026-10-10 16:46:27.388 [http-nio-8080-exec-5] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        rp1_0.profile_id,
+        rp1_0.created_at,
+        rp1_0.created_by,
+        rp1_0.deleted_at,
+        rp1_0.profile_type,
+        rp1_0.risk_score,
+        rp1_0.updated_at,
+        rp1_0.updated_by,
+        rp1_0.user_id 
+    [34mfrom[0m
+        risk_profiles rp1_0 
+    [34mwhere[0m
+        rp1_0.user_id=? 
+        [34mand[0m (
+            rp1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:27.392 [http-nio-8080-exec-5] INFO  c.p.security.JwtAuthenticationFilter - User authenticated in SecurityContext: kaprimuskan6@gmail.com
+2026-10-10 16:46:27.395 [http-nio-8080-exec-5] INFO  c.pbfm.controller.AccountController - Fetching accounts for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:27.396 [http-nio-8080-exec-5] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        count(*) 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m u1_0.user_id=?
+2026-10-10 16:46:27.402 [http-nio-8080-exec-5] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        a1_0.account_id,
+        a1_0.account_name,
+        a1_0.account_type,
+        a1_0.balance,
+        a1_0.created_at,
+        a1_0.created_by,
+        a1_0.deleted_at,
+        a1_0.updated_at,
+        a1_0.updated_by,
+        a1_0.user_id 
+    [34mfrom[0m
+        accounts a1_0 
+    [34mwhere[0m
+        (
+            a1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m a1_0.user_id=?
+2026-10-10 16:46:27.406 [http-nio-8080-exec-5] INFO  c.pbfm.controller.AccountController - Found 3 accounts for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:31.118 [http-nio-8080-exec-8] INFO  c.p.security.JwtAuthenticationFilter - Token received in request header
+2026-10-10 16:46:31.119 [http-nio-8080-exec-1] INFO  c.p.security.JwtAuthenticationFilter - Token received in request header
+2026-10-10 16:46:31.122 [http-nio-8080-exec-1] INFO  c.p.security.JwtAuthenticationFilter - Token is valid. User: kaprimuskan6@gmail.com
+2026-10-10 16:46:31.123 [http-nio-8080-exec-8] INFO  c.p.security.JwtAuthenticationFilter - Token is valid. User: kaprimuskan6@gmail.com
+2026-10-10 16:46:31.127 [http-nio-8080-exec-1] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.created_by,
+        u1_0.currency_preference,
+        u1_0.deleted_at,
+        u1_0.email,
+        u1_0.name,
+        u1_0.password_hash,
+        u1_0.role,
+        u1_0.updated_at,
+        u1_0.updated_by 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m upper(u1_0.email)=upper(?)
+2026-10-10 16:46:31.127 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.created_by,
+        u1_0.currency_preference,
+        u1_0.deleted_at,
+        u1_0.email,
+        u1_0.name,
+        u1_0.password_hash,
+        u1_0.role,
+        u1_0.updated_at,
+        u1_0.updated_by 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m upper(u1_0.email)=upper(?)
+2026-10-10 16:46:31.131 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        rp1_0.profile_id,
+        rp1_0.created_at,
+        rp1_0.created_by,
+        rp1_0.deleted_at,
+        rp1_0.profile_type,
+        rp1_0.risk_score,
+        rp1_0.updated_at,
+        rp1_0.updated_by,
+        rp1_0.user_id 
+    [34mfrom[0m
+        risk_profiles rp1_0 
+    [34mwhere[0m
+        rp1_0.user_id=? 
+        [34mand[0m (
+            rp1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:31.131 [http-nio-8080-exec-1] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        rp1_0.profile_id,
+        rp1_0.created_at,
+        rp1_0.created_by,
+        rp1_0.deleted_at,
+        rp1_0.profile_type,
+        rp1_0.risk_score,
+        rp1_0.updated_at,
+        rp1_0.updated_by,
+        rp1_0.user_id 
+    [34mfrom[0m
+        risk_profiles rp1_0 
+    [34mwhere[0m
+        rp1_0.user_id=? 
+        [34mand[0m (
+            rp1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:31.133 [http-nio-8080-exec-1] INFO  c.p.security.JwtAuthenticationFilter - User authenticated in SecurityContext: kaprimuskan6@gmail.com
+2026-10-10 16:46:31.133 [http-nio-8080-exec-8] INFO  c.p.security.JwtAuthenticationFilter - User authenticated in SecurityContext: kaprimuskan6@gmail.com
+2026-10-10 16:46:31.135 [http-nio-8080-exec-1] INFO  c.pbfm.controller.CategoryController - Fetching all categories for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:31.135 [http-nio-8080-exec-8] INFO  c.pbfm.controller.BudgetController - Fetching all budgets for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:31.136 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        count(*) 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m u1_0.user_id=?
+2026-10-10 16:46:31.138 [http-nio-8080-exec-1] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        count(*) 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m u1_0.user_id=?
+2026-10-10 16:46:31.142 [http-nio-8080-exec-1] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        c1_0.category_id,
+        c1_0.category_name,
+        c1_0.created_at,
+        c1_0.created_by,
+        c1_0.deleted_at,
+        c1_0.type,
+        c1_0.updated_at,
+        c1_0.updated_by,
+        c1_0.user_id 
+    [34mfrom[0m
+        categories c1_0 
+    [34mwhere[0m
+        (
+            c1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m c1_0.user_id=?
+2026-10-10 16:46:31.142 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        b1_0.budget_id,
+        b1_0.category_id,
+        b1_0.created_at,
+        b1_0.created_by,
+        b1_0.deleted_at,
+        b1_0.end_date,
+        b1_0.limit_amount,
+        b1_0.period,
+        b1_0.start_date,
+        b1_0.updated_at,
+        b1_0.updated_by,
+        b1_0.user_id 
+    [34mfrom[0m
+        budgets b1_0 
+    [34mwhere[0m
+        (
+            b1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m b1_0.user_id=?
+2026-10-10 16:46:31.146 [http-nio-8080-exec-1] INFO  c.pbfm.controller.CategoryController - Found 5 categories for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:31.150 [http-nio-8080-exec-8] INFO  c.pbfm.controller.BudgetController - Found 2 budgets for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:31.161 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        c1_0.category_id,
+        c1_0.category_name,
+        c1_0.created_at,
+        c1_0.created_by,
+        c1_0.deleted_at,
+        c1_0.type,
+        c1_0.updated_at,
+        c1_0.updated_by,
+        c1_0.user_id 
+    [34mfrom[0m
+        categories c1_0 
+    [34mwhere[0m
+        c1_0.category_id=? 
+        [34mand[0m (
+            c1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:31.167 [http-nio-8080-exec-8] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        c1_0.category_id,
+        c1_0.category_name,
+        c1_0.created_at,
+        c1_0.created_by,
+        c1_0.deleted_at,
+        c1_0.type,
+        c1_0.updated_at,
+        c1_0.updated_by,
+        c1_0.user_id 
+    [34mfrom[0m
+        categories c1_0 
+    [34mwhere[0m
+        c1_0.category_id=? 
+        [34mand[0m (
+            c1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:31.191 [http-nio-8080-exec-6] INFO  c.p.security.JwtAuthenticationFilter - Token received in request header
+2026-10-10 16:46:31.195 [http-nio-8080-exec-6] INFO  c.p.security.JwtAuthenticationFilter - Token is valid. User: kaprimuskan6@gmail.com
+2026-10-10 16:46:31.199 [http-nio-8080-exec-6] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.created_by,
+        u1_0.currency_preference,
+        u1_0.deleted_at,
+        u1_0.email,
+        u1_0.name,
+        u1_0.password_hash,
+        u1_0.role,
+        u1_0.updated_at,
+        u1_0.updated_by 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m upper(u1_0.email)=upper(?)
+2026-10-10 16:46:31.203 [http-nio-8080-exec-6] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        rp1_0.profile_id,
+        rp1_0.created_at,
+        rp1_0.created_by,
+        rp1_0.deleted_at,
+        rp1_0.profile_type,
+        rp1_0.risk_score,
+        rp1_0.updated_at,
+        rp1_0.updated_by,
+        rp1_0.user_id 
+    [34mfrom[0m
+        risk_profiles rp1_0 
+    [34mwhere[0m
+        rp1_0.user_id=? 
+        [34mand[0m (
+            rp1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:31.207 [http-nio-8080-exec-6] INFO  c.p.security.JwtAuthenticationFilter - User authenticated in SecurityContext: kaprimuskan6@gmail.com
+2026-10-10 16:46:31.209 [http-nio-8080-exec-6] INFO  c.pbfm.controller.ReportController - Generating budget utilization report for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:31.211 [http-nio-8080-exec-6] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        count(*) 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m u1_0.user_id=?
+2026-10-10 16:46:31.215 [http-nio-8080-exec-6] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        b1_0.budget_id,
+        b1_0.category_id,
+        b1_0.created_at,
+        b1_0.created_by,
+        b1_0.deleted_at,
+        b1_0.end_date,
+        b1_0.limit_amount,
+        b1_0.period,
+        b1_0.start_date,
+        b1_0.updated_at,
+        b1_0.updated_by,
+        b1_0.user_id 
+    [34mfrom[0m
+        budgets b1_0 
+    [34mwhere[0m
+        (
+            b1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m b1_0.user_id=?
+2026-10-10 16:46:31.220 [http-nio-8080-exec-6] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        c1_0.category_id,
+        c1_0.category_name,
+        c1_0.created_at,
+        c1_0.created_by,
+        c1_0.deleted_at,
+        c1_0.type,
+        c1_0.updated_at,
+        c1_0.updated_by,
+        c1_0.user_id 
+    [34mfrom[0m
+        categories c1_0 
+    [34mwhere[0m
+        c1_0.category_id=? 
+        [34mand[0m (
+            c1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:31.226 [http-nio-8080-exec-6] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        coalesce(sum(t1_0.amount), 0) 
+    [34mfrom[0m
+        transactions t1_0 
+    [34mwhere[0m
+        (
+            t1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m t1_0.user_id=? 
+        [34mand[0m t1_0.category_id=? 
+        [34mand[0m t1_0.type=? 
+        [34mand[0m t1_0.[34mdate[0m [34mbetween[0m ? [34mand[0m ?
+2026-10-10 16:46:31.230 [http-nio-8080-exec-6] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        c1_0.category_id,
+        c1_0.category_name,
+        c1_0.created_at,
+        c1_0.created_by,
+        c1_0.deleted_at,
+        c1_0.type,
+        c1_0.updated_at,
+        c1_0.updated_by,
+        c1_0.user_id 
+    [34mfrom[0m
+        categories c1_0 
+    [34mwhere[0m
+        c1_0.category_id=? 
+        [34mand[0m (
+            c1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:31.234 [http-nio-8080-exec-6] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        coalesce(sum(t1_0.amount), 0) 
+    [34mfrom[0m
+        transactions t1_0 
+    [34mwhere[0m
+        (
+            t1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m t1_0.user_id=? 
+        [34mand[0m t1_0.category_id=? 
+        [34mand[0m t1_0.type=? 
+        [34mand[0m t1_0.[34mdate[0m [34mbetween[0m ? [34mand[0m ?
+2026-10-10 16:46:31.236 [http-nio-8080-exec-6] INFO  c.pbfm.controller.ReportController - Budget utilization report generated successfully with 2 budgets for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:38.764 [http-nio-8080-exec-4] INFO  c.p.security.JwtAuthenticationFilter - Token received in request header
+2026-10-10 16:46:38.767 [http-nio-8080-exec-4] INFO  c.p.security.JwtAuthenticationFilter - Token is valid. User: kaprimuskan6@gmail.com
+2026-10-10 16:46:38.770 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        u1_0.user_id,
+        u1_0.created_at,
+        u1_0.created_by,
+        u1_0.currency_preference,
+        u1_0.deleted_at,
+        u1_0.email,
+        u1_0.name,
+        u1_0.password_hash,
+        u1_0.role,
+        u1_0.updated_at,
+        u1_0.updated_by 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m upper(u1_0.email)=upper(?)
+2026-10-10 16:46:38.773 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        rp1_0.profile_id,
+        rp1_0.created_at,
+        rp1_0.created_by,
+        rp1_0.deleted_at,
+        rp1_0.profile_type,
+        rp1_0.risk_score,
+        rp1_0.updated_at,
+        rp1_0.updated_by,
+        rp1_0.user_id 
+    [34mfrom[0m
+        risk_profiles rp1_0 
+    [34mwhere[0m
+        rp1_0.user_id=? 
+        [34mand[0m (
+            rp1_0.deleted_at [34mIS[0m [34mNULL[0m
+        )
+2026-10-10 16:46:38.776 [http-nio-8080-exec-4] INFO  c.p.security.JwtAuthenticationFilter - User authenticated in SecurityContext: kaprimuskan6@gmail.com
+2026-10-10 16:46:38.779 [http-nio-8080-exec-4] INFO  com.pbfm.controller.GoalController - Fetching all goals for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 16:46:38.780 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        count(*) 
+    [34mfrom[0m
+        users u1_0 
+    [34mwhere[0m
+        (
+            u1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m u1_0.user_id=?
+2026-10-10 16:46:38.784 [http-nio-8080-exec-4] DEBUG org.hibernate.SQL - 
+    [34mselect[0m
+        g1_0.goal_id,
+        g1_0.created_at,
+        g1_0.created_by,
+        g1_0.current_amount,
+        g1_0.deleted_at,
+        g1_0.goal_name,
+        g1_0.status,
+        g1_0.target_amount,
+        g1_0.target_date,
+        g1_0.updated_at,
+        g1_0.updated_by,
+        g1_0.user_id 
+    [34mfrom[0m
+        goals g1_0 
+    [34mwhere[0m
+        (
+            g1_0.deleted_at [34mIS[0m [34mNULL[0m
+        ) 
+        [34mand[0m g1_0.user_id=?
+2026-10-10 16:46:38.788 [http-nio-8080-exec-4] INFO  com.pbfm.controller.GoalController - Found 1 goals for user ID: e3952bb0-b74a-4d7a-8f5b-1662fb1655b3
+2026-10-10 21:11:04.912 [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=41m131ms583µs700ns).

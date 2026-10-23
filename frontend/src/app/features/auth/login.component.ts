@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -49,20 +49,35 @@ import { AuthService } from '../../core/services/auth.service';
             </p>
           </div>
 
+          <!-- Already Logged In Banner -->
+          <div *ngIf="authService.isAuthenticated()" class="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-2xl text-sm flex items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">👋</span>
+              <div>
+                <p class="font-bold text-xs uppercase tracking-wide text-blue-600">Active Session Found</p>
+                <p class="text-xs text-blue-900">Signed in as <strong>{{ authService.currentUser()?.email }}</strong></p>
+              </div>
+            </div>
+            <a routerLink="/dashboard" class="px-3.5 py-1.5 bg-brand-primary hover:bg-brand-primary-dark text-white text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-1">
+              <span>Go to App</span>
+              <span>&rarr;</span>
+            </a>
+          </div>
+
           <!-- Success Alert -->
-          <div *ngIf="successMessage" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
+          <div *ngIf="successMessage()" class="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <span>{{ successMessage }}</span>
+            <span>{{ successMessage() }}</span>
           </div>
 
           <!-- Error Alert -->
-          <div *ngIf="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div *ngIf="errorMessage()" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-2xl text-sm flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <span>{{ errorMessage }}</span>
+            <span>{{ errorMessage() }}</span>
           </div>
 
           <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="mt-8 space-y-5">
@@ -84,42 +99,35 @@ import { AuthService } from '../../core/services/auth.service';
                 <label for="password" class="block text-xs font-bold text-text-sub uppercase tracking-wider">Password</label>
                 <a class="text-xs text-brand-primary font-semibold hover:underline cursor-pointer" (click)="forgotPasswordPlaceholder()">Forgot password?</a>
               </div>
-              <input 
-                id="password" 
-                type="password" 
-                formControlName="password"
-                placeholder="••••••••"
-                class="w-full px-4 py-3 rounded-2xl border border-brand-border bg-brand-bg text-sm focus:outline-none focus:border-brand-primary transition-all duration-200"
-                [class.border-red-400]="isFieldInvalid('password')"
-              >
+              <div class="relative">
+                <input 
+                  id="password" 
+                  [type]="showPassword() ? 'text' : 'password'" 
+                  formControlName="password"
+                  placeholder="••••••••"
+                  class="w-full px-4 py-3 pr-11 rounded-2xl border border-brand-border bg-brand-bg text-sm focus:outline-none focus:border-brand-primary transition-all duration-200"
+                  [class.border-red-400]="isFieldInvalid('password')"
+                >
+                <button 
+                  type="button" 
+                  (click)="togglePasswordVisibility()" 
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none text-sm p-1"
+                  tabindex="-1"
+                >
+                  {{ showPassword() ? '👁️' : '🙈' }}
+                </button>
+              </div>
               <p *ngIf="isFieldInvalid('password')" class="text-xs text-red-500 mt-1">Password is required</p>
             </div>
 
             <button 
               type="submit" 
-              [disabled]="loading"
+              [disabled]="loading()"
               class="w-full py-3 px-4 bg-brand-primary hover:bg-brand-primary-dark text-white text-sm font-bold rounded-2xl shadow-sm hover:shadow transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ loading ? 'Signing In...' : 'Sign In' }}
+              {{ loading() ? 'Signing In...' : 'Sign In' }}
             </button>
           </form>
-
-          <!-- One-click Demo / Seed Account Login -->
-          <div class="pt-6 border-t border-brand-border text-center space-y-2">
-            <p class="text-xs text-text-sub">Quick login with pre-loaded database seed account:</p>
-            <button 
-              type="button"
-              (click)="proceedWithSeedAccount()" 
-              [disabled]="loading"
-              class="w-full py-2.5 px-4 bg-brand-primary-light hover:bg-brand-primary text-brand-primary-dark hover:text-white text-xs font-bold rounded-2xl transition-all duration-200 focus:outline-none border border-brand-primary flex items-center justify-center gap-2"
-            >
-              <span>⚡</span>
-              <span>1-Click Sign In as Muskan (kaprimuskan6@gmail.com)</span>
-            </button>
-            <p class="text-[11px] text-text-sub">
-              Or <a (click)="fillSeedCredentials()" class="text-brand-primary font-semibold hover:underline cursor-pointer">fill demo credentials</a> into the form above.
-            </p>
-          </div>
         </div>
       </div>
     </div>
@@ -127,27 +135,34 @@ import { AuthService } from '../../core/services/auth.service';
 })
 export class LoginComponent {
   private fb = inject(FormBuilder);
-  private authService = inject(AuthService);
+  authService = inject(AuthService);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
 
   loginForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]]
   });
 
-  loading = false;
-  errorMessage = '';
-  successMessage = '';
+  loading = signal<boolean>(false);
+  errorMessage = signal<string>('');
+  successMessage = signal<string>('');
+  showPassword = signal<boolean>(false);
 
   constructor() {
     // Check if user just registered or wants pre-filled email from route state or URL
     const nav = this.router.getCurrentNavigation();
     if (nav?.extras?.state?.['registered']) {
-      this.successMessage = 'Account created successfully! Please sign in below.';
+      this.successMessage.set('Account created successfully! Please sign in below.');
     }
     if (nav?.extras?.state?.['email']) {
       this.loginForm.patchValue({ email: nav.extras.state['email'] });
     }
+  }
+
+  togglePasswordVisibility() {
+    this.showPassword.update(v => !v);
+    this.cdr.markForCheck();
   }
 
   isFieldInvalid(field: string): boolean {
@@ -161,9 +176,10 @@ export class LoginComponent {
       return;
     }
 
-    this.loading = true;
-    this.errorMessage = '';
-    this.successMessage = '';
+    this.loading.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+    this.cdr.markForCheck();
 
     const formVal = this.loginForm.value;
     const loginPayload = {
@@ -173,33 +189,23 @@ export class LoginComponent {
 
     this.authService.login(loginPayload).subscribe({
       next: () => {
-        this.loading = false;
+        this.loading.set(false);
+        this.cdr.markForCheck();
         this.router.navigate(['/dashboard']);
       },
       error: (err) => {
-        this.loading = false;
+        this.loading.set(false);
         console.error('Login error:', err);
-        this.errorMessage = err?.error?.message || 'Invalid email address or password. Please try again.';
+        const msg = err?.error?.message || 'Invalid email address or password. Please try again.';
+        this.errorMessage.set(msg);
+        this.cdr.markForCheck();
       }
     });
   }
 
-  proceedWithSeedAccount() {
-    this.fillSeedCredentials();
-    this.onSubmit();
-  }
-
-  fillSeedCredentials() {
-    this.loginForm.patchValue({
-      email: 'kaprimuskan6@gmail.com',
-      password: 'Password@123'
-    });
-    this.errorMessage = '';
-  }
-
   forgotPasswordPlaceholder() {
-    this.errorMessage = '';
-    this.fillSeedCredentials();
-    this.successMessage = "Demo credentials loaded (kaprimuskan6@gmail.com / Password@123). Click Sign In.";
+    this.errorMessage.set('');
+    this.successMessage.set("Please contact your system administrator or verify your registered email address.");
+    this.cdr.markForCheck();
   }
 }

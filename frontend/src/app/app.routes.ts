@@ -2,6 +2,12 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 
 export const routes: Routes = [
+  // Start page: defaults to login page
+  {
+    path: '',
+    pathMatch: 'full',
+    redirectTo: 'login'
+  },
   {
     path: 'login',
     loadComponent: () => import('./features/auth/login.component').then(m => m.LoginComponent)
@@ -10,10 +16,12 @@ export const routes: Routes = [
     path: 'register',
     loadComponent: () => import('./features/auth/register.component').then(m => m.RegisterComponent)
   },
+  // Protected pages: strictly accessible only after login
   {
     path: '',
     loadComponent: () => import('./shared/components/main-layout.component').then(m => m.MainLayoutComponent),
     canActivate: [authGuard],
+    canActivateChild: [authGuard],
     children: [
       {
         path: 'dashboard',
@@ -58,16 +66,11 @@ export const routes: Routes = [
       {
         path: 'settings',
         loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
-      },
-      {
-        path: '',
-        redirectTo: 'dashboard',
-        pathMatch: 'full'
       }
     ]
   },
   {
     path: '**',
-    redirectTo: 'dashboard'
+    redirectTo: 'login'
   }
 ];
