@@ -9,47 +9,31 @@ import { AuthService } from '../../core/services/auth.service';
   standalone: true,
   imports: [CommonModule, RouterLink, ReactiveFormsModule],
   template: `
-    <div class="min-h-screen bg-[#FDECE9] bg-gradient-to-br from-[#FFF5F3] via-[#FDECE9] to-[#FADFD9] text-text-main font-sans flex flex-col items-center justify-center p-4 sm:p-8 relative overflow-hidden select-none">
+    <div class="min-h-screen bg-[#FDECE9] bg-gradient-to-br from-[#FFF5F3] via-[#FDECE9] to-[#FADFD9] text-text-main font-sans flex flex-col items-center justify-center p-4 sm:p-8 md:p-12 relative overflow-hidden select-none">
       <!-- Ambient Background Elements & Blobs -->
       <div class="absolute inset-0 bg-dot-pattern-light opacity-60 pointer-events-none"></div>
       <div class="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-gradient-to-br from-[#E98FA3]/25 to-[#FDE2E4]/40 blur-3xl animate-pulse-soft pointer-events-none"></div>
       <div class="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-gradient-to-tl from-[#F27A59]/20 to-[#E98FA3]/25 blur-3xl animate-float-slow pointer-events-none"></div>
 
-      <!-- Top Header: High-Visibility Brand & Subtitle -->
-      <header class="w-full max-w-4xl flex items-center justify-between mb-6 z-10 px-2 sm:px-4">
+      <!-- Clean Header: Just BACHAT Brand (No 'FINANCE' badge, No clutter) -->
+      <header class="w-full max-w-[1040px] flex items-center justify-start mb-6 z-10 px-2 sm:px-4">
         <div class="flex items-center gap-3.5 group cursor-default">
           <img src="/logo-icon.png" alt="BACHAT Logo" class="h-12 w-12 object-contain rounded-2xl drop-shadow-sm transition-transform group-hover:scale-105 duration-300 flex-shrink-0" />
-          <div class="flex flex-col justify-center">
-            <div class="flex items-center gap-2">
-              <span class="text-2xl sm:text-3xl font-black text-[#29252A] tracking-tight leading-none">BACHAT</span>
-              <span class="text-[10px] font-black uppercase tracking-wider text-brand-primary-dark bg-white/80 border border-brand-primary/25 px-2 py-0.5 rounded-full shadow-xs">FINANCE</span>
-            </div>
-            <span class="text-xs sm:text-sm font-extrabold text-[#524B53] tracking-wider uppercase mt-1 leading-snug">
-              Personal Finance &amp; Budget Management Platform
-            </span>
-          </div>
-        </div>
-
-        <div class="hidden sm:flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/80 backdrop-blur-md border border-white/90 shadow-xs text-xs font-semibold text-text-sub">
-          <span class="relative flex h-2 w-2">
-            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span>Instant Setup • Free</span>
+          <span class="text-3xl font-black text-[#29252A] tracking-tight leading-none">BACHAT</span>
         </div>
       </header>
 
-      <!-- Main Floating Card (Dribbble Style) -->
-      <div class="max-w-4xl w-full bg-white rounded-[32px] sm:rounded-[40px] shadow-[0_25px_70px_rgba(217,111,136,0.22)] overflow-hidden flex flex-col md:flex-row relative z-10 border border-white/90 transition-all duration-300">
+      <!-- Main Large Floating Card -->
+      <div class="max-w-[1040px] w-full min-h-[520px] bg-white rounded-[36px] sm:rounded-[44px] shadow-[0_30px_80px_rgba(217,111,136,0.22)] overflow-hidden flex flex-col md:flex-row relative z-10 border border-white/90 transition-all duration-300">
         
-        <!-- Left Side: Animated Plant in Terracotta Pot & Fluid Organic Blob -->
-        <div class="w-full md:w-1/2 bg-[#FFF9F8] p-8 sm:p-10 flex flex-col items-center justify-center relative overflow-hidden border-b md:border-b-0 md:border-r border-[#F7EBEB]">
+        <!-- Left Side: Animated Plant in Terracotta Pot & Fluid Organic Blob (Clean, No text) -->
+        <div class="w-full md:w-1/2 bg-[#FFF9F8] p-8 sm:p-12 flex items-center justify-center relative overflow-hidden border-b md:border-b-0 md:border-r border-[#F7EBEB]">
           <!-- Inner Ambient Blobs -->
-          <div class="absolute -top-10 -left-10 w-48 h-48 bg-[#FDEBE8] rounded-full blur-2xl pointer-events-none"></div>
-          <div class="absolute -bottom-10 -right-10 w-48 h-48 bg-[#FCE5E8] rounded-full blur-2xl pointer-events-none"></div>
+          <div class="absolute -top-10 -left-10 w-56 h-56 bg-[#FDEBE8] rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -bottom-10 -right-10 w-56 h-56 bg-[#FCE5E8] rounded-full blur-3xl pointer-events-none"></div>
 
-          <!-- Handcrafted Animated Vector Plant Illustration -->
-          <div class="w-full max-w-[320px] h-[340px] sm:h-[380px] flex items-center justify-center relative z-10">
+          <!-- Handcrafted Animated Vector Plant Illustration (Enlarged and centered) -->
+          <div class="w-full max-w-[360px] h-[380px] sm:h-[420px] flex items-center justify-center relative z-10">
             <svg viewBox="0 0 400 460" class="w-full h-full select-none" fill="none" xmlns="http://www.w3.org/2000/svg">
               <!-- Soft Organic Background Fluid Blob -->
               <path d="M130 60C230 20 340 80 360 180C380 280 320 390 220 410C120 430 45 360 35 260C25 160 30 100 130 60Z" 
@@ -102,19 +86,14 @@ import { AuthService } from '../../core/services/auth.service';
               <path d="M224 366L218 408C222 410 226 410 227 408L238 366Z" fill="#DD5D3A" opacity="0.85" />
             </svg>
           </div>
-
-          <!-- Bottom caption on illustration -->
-          <div class="mt-2 text-center z-10">
-            <p class="text-xs font-bold text-[#A57882] tracking-wider uppercase">Grow your savings with BACHAT</p>
-          </div>
         </div>
 
-        <!-- Right Side: Clean Dribbble-Style Register Form -->
-        <div class="w-full md:w-1/2 p-8 sm:p-12 md:p-14 flex flex-col justify-center bg-white relative">
+        <!-- Right Side: Clean Dribbble-Style Register Form with generous padding -->
+        <div class="w-full md:w-1/2 p-8 sm:p-12 md:p-16 flex flex-col justify-center bg-white relative">
           
           <div class="mb-6">
             <h1 class="text-4xl sm:text-5xl font-light text-[#292338] tracking-tight">Register</h1>
-            <p class="mt-2 text-xs text-[#8A828F] font-medium">
+            <p class="mt-2 text-xs sm:text-sm text-[#8A828F] font-medium">
               Already have an account? 
               <a routerLink="/login" class="font-bold text-[#F27A59] hover:text-[#D96F88] underline decoration-[#F27A59]/40 underline-offset-4 transition-colors">Sign in</a>.
             </p>
@@ -144,10 +123,10 @@ import { AuthService } from '../../core/services/auth.service';
                 type="text" 
                 formControlName="name"
                 placeholder="Full Name"
-                class="w-full pb-2 pt-2 border-b-2 border-[#EAE3E6] group-focus-within:border-[#F27A59] text-sm sm:text-base font-light text-[#29252A] placeholder-[#B5ACB6] bg-transparent focus:outline-none transition-colors duration-300"
+                class="w-full pb-2.5 pt-2 border-b-2 border-[#EAE3E6] group-focus-within:border-[#F27A59] text-sm sm:text-base font-light text-[#29252A] placeholder-[#B5ACB6] bg-transparent focus:outline-none transition-colors duration-300"
                 [class.border-red-400]="isFieldInvalid('name')"
               >
-              <div class="absolute right-1 top-2.5 text-[#F27A59]" *ngIf="registerForm.get('name')?.valid && !isFieldInvalid('name')">
+              <div class="absolute right-1 top-3 text-[#F27A59]" *ngIf="registerForm.get('name')?.valid && !isFieldInvalid('name')">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" />
@@ -163,10 +142,10 @@ import { AuthService } from '../../core/services/auth.service';
                 type="email" 
                 formControlName="email"
                 placeholder="yourmail@dribbble.com"
-                class="w-full pb-2 pt-2 border-b-2 border-[#EAE3E6] group-focus-within:border-[#F27A59] text-sm sm:text-base font-light text-[#29252A] placeholder-[#B5ACB6] bg-transparent focus:outline-none transition-colors duration-300"
+                class="w-full pb-2.5 pt-2 border-b-2 border-[#EAE3E6] group-focus-within:border-[#F27A59] text-sm sm:text-base font-light text-[#29252A] placeholder-[#B5ACB6] bg-transparent focus:outline-none transition-colors duration-300"
                 [class.border-red-400]="isFieldInvalid('email')"
               >
-              <div class="absolute right-1 top-2.5 text-[#F27A59]" *ngIf="registerForm.get('email')?.valid && !isFieldInvalid('email')">
+              <div class="absolute right-1 top-3 text-[#F27A59]" *ngIf="registerForm.get('email')?.valid && !isFieldInvalid('email')">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.8" />
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4" />
@@ -182,13 +161,13 @@ import { AuthService } from '../../core/services/auth.service';
                 [type]="showPassword() ? 'text' : 'password'" 
                 formControlName="password"
                 placeholder="•••••••• (Min 6 characters)"
-                class="w-full pb-2 pt-2 pr-8 border-b-2 border-[#EAE3E6] group-focus-within:border-[#F27A59] text-sm sm:text-base font-light text-[#29252A] placeholder-[#B5ACB6] bg-transparent focus:outline-none transition-colors duration-300 tracking-wider"
+                class="w-full pb-2.5 pt-2 pr-8 border-b-2 border-[#EAE3E6] group-focus-within:border-[#F27A59] text-sm sm:text-base font-light text-[#29252A] placeholder-[#B5ACB6] bg-transparent focus:outline-none transition-colors duration-300 tracking-wider"
                 [class.border-red-400]="isFieldInvalid('password')"
               >
               <button 
                 type="button" 
                 (click)="togglePasswordVisibility()" 
-                class="absolute right-1 top-2.5 text-[#A69EA8] hover:text-[#F27A59] focus:outline-none text-sm transition-colors"
+                class="absolute right-1 top-3 text-[#A69EA8] hover:text-[#F27A59] focus:outline-none text-sm transition-colors"
                 tabindex="-1"
                 aria-label="Toggle password visibility"
               >
@@ -198,11 +177,11 @@ import { AuthService } from '../../core/services/auth.service';
             </div>
 
             <!-- Centered Coral Pill Button matching screenshot -->
-            <div class="flex justify-center pt-3">
+            <div class="flex justify-center pt-4">
               <button 
                 type="submit" 
                 [disabled]="loading()"
-                class="px-10 py-3 rounded-full bg-gradient-to-r from-[#F27A59] to-[#E98FA3] hover:from-[#E46B4A] hover:to-[#D96F88] active:scale-95 text-white text-sm font-semibold shadow-md shadow-[#F27A59]/30 hover:shadow-lg transition-all duration-300 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
+                class="px-12 py-3.5 rounded-full bg-gradient-to-r from-[#F27A59] to-[#E98FA3] hover:from-[#E46B4A] hover:to-[#D96F88] active:scale-95 text-white text-sm font-semibold shadow-md shadow-[#F27A59]/30 hover:shadow-lg transition-all duration-300 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
               >
                 <svg *ngIf="loading()" class="animate-spin -ml-1 mr-1.5 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -214,21 +193,6 @@ import { AuthService } from '../../core/services/auth.service';
           </form>
         </div>
       </div>
-
-      <!-- Bottom Floating Ambient Badges -->
-      <footer class="w-full max-w-4xl flex items-center justify-between mt-6 z-10 px-2 sm:px-4 text-xs text-[#8F8792]">
-        <div class="flex items-center gap-2 bg-white/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/80 shadow-xs">
-          <span>↗</span>
-          <span class="font-bold text-[#29252A]">Visit site</span>
-          <span class="text-[#B5ACB6]">•</span>
-          <span>BACHAT Finance</span>
-        </div>
-
-        <div class="flex items-center gap-1.5 bg-white/70 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/80 shadow-xs font-semibold">
-          <span>🛡️</span>
-          <span>Protected by JWT &amp; Argon2</span>
-        </div>
-      </footer>
     </div>
   `
 })
