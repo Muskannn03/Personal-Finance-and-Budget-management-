@@ -53,19 +53,8 @@ import { AuthService } from '../../core/services/auth.service';
       <header class="w-full max-w-[1340px] mx-auto px-6 sm:px-12 pt-6 sm:pt-8 flex items-start justify-between z-10 relative flex-shrink-0">
         <!-- Left: BACHAT Brand Identity -->
         <div class="flex items-center gap-3.5 group cursor-default">
-          <!-- Coral Badge with White Sprout on Coins Icon -->
-          <div class="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-tr from-[#FF8A78] to-[#F16F83] flex items-center justify-center shadow-sm shadow-[#FF8A78]/30 transition-transform group-hover:scale-105 duration-300 flex-shrink-0">
-            <svg class="w-6 h-6 sm:w-7 sm:h-7 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Sprout Leaves -->
-              <path d="M12 4C10.5 4 8 5.5 8 8C8 10 10.5 11.5 12 11.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-              <path d="M12 4C13.5 4 16 5.5 16 8C16 10 13.5 11.5 12 11.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-              <path d="M12 4V14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
-              <!-- Stacked Coins Base -->
-              <ellipse cx="12" cy="14" rx="5" ry="1.8" fill="currentColor" fill-opacity="0.9" />
-              <path d="M7 14V17C7 18 9.2 19 12 19C14.8 19 17 18 17 17V14" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-              <path d="M7 17V20C7 21 9.2 22 12 22C14.8 22 17 21 17 20V17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-            </svg>
-          </div>
+          <!-- Original BACHAT Logo Icon -->
+          <img src="/logo-icon.png" alt="BACHAT Logo" class="h-11 w-11 sm:h-12 sm:w-12 object-contain rounded-2xl drop-shadow-sm transition-transform group-hover:scale-105 duration-300 flex-shrink-0" />
 
           <!-- Brand Typography -->
           <div class="flex flex-col">
