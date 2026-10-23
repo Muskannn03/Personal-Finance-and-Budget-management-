@@ -81,3 +81,58 @@
 .animate-pulse-soft {
   animation: pulseSoft 6s ease-in-out infinite;
 }
+
+/* Plant swaying & artistic Dribbble animations */
+@keyframes plantSway {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  35% {
+    transform: rotate(2deg) translateY(-2px);
+  }
+  70% {
+    transform: rotate(-1.5deg) translateY(1px);
+  }
+}
+
+@keyframes leafFlutter {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.03) rotate(1.2deg);
+  }
+}
+
+@keyframes gentleFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-plant-sway {
+  transform-origin: 200px 320px;
+  animation: plantSway 6.5s ease-in-out infinite;
+}
+
+.animate-leaf-flutter {
+  transform-origin: center center;
+  animation: leafFlutter 4.5s ease-in-out infinite;
+}
+
+.animate-gentle-float {
+  animation: gentleFloat 5s ease-in-out infinite;
+}
+
+/* Maintain clean background on browser autofill */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px white inset !important;
+  -webkit-text-fill-color: #29252A !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
